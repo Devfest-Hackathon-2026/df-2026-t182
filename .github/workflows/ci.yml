@@ -1,0 +1,45 @@
+# このリポジトリの CI。「いつ実行するか」をここで決め、「何を実行するか」は regression-suite.yml と tools/ci/ にある。
+#  - main への PR ............ 作成・更新・再オープンのたびに、PR を main に仮マージした結果（実際に統合されるコード）をテスト。
+#                              フォークからの PR も安全（読み取り専用のトークン、Secrets なし）
+#  - main への push .......... マージのたびに、マージ後の main をテスト
+#  - その他のブランチへの push  メンバーの作業ブランチ（PR を作る前の確認）
+#  - workflow_dispatch ....... 手動実行
+# 「Regression gate」をマージ前の必須チェックにする（docs/CI.md 10章）。このワークフローはデプロイせず、Secrets も使わない。
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  regression:
+    uses: ./.github/workflows/regression-suite.yml
+    with:
+      label: Team
+      # Firebase の設定ファイルと公開コードの Firebase URL には、このリポジトリのプロジェクト・Hosting サイトだけが
+      # 現れてよい。ほかの環境（個人の検証用プロジェクトなど）の値が混ざると失敗する。追加したときはここも更新する。
+      allow-firebase-ids: project-8f7193a2-11b6-480f-9f5,mi-wo-shinjite,mi-game-aa980,miwoshinjite
+
+  gate:
+    name: Regression gate
+    needs: [regression]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Summarise required results
+        env:
+          REGRESSION: ${{ needs.regression.result }}
+        run: |
+          echo "regression=$REGRESSION" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$REGRESSION" = success ] || { echo "::error::Regression gate failed"; exit 1; }

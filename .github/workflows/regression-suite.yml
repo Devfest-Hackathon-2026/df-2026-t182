@@ -1,0 +1,114 @@
+# 回帰テスト一式（再利用ワークフロー）。「何を実行するか」だけを定義する。
+# 「いつ実行するか」とリポジトリごとの設定（下の inputs）は、呼び出し側の ci.yml が決める。
+# テストの中身はすべて tools/ci/ にある（手元でも tools/ci/run.sh all で同じものを実行できる）。
+#
+# 安全のための設計：読み取り専用のトークン、Secrets なし、デプロイなし、認証情報を残さない checkout、
+# Firestore Emulator はオフラインの「demo-」プロジェクト。tools/ci/check-guard.mjs が全ワークフローでこれを検査する。
+name: Regression suite
+
+on:
+  workflow_call:
+    inputs:
+      expect-firebase-project:
+        description: このリポジトリが接続してよい唯一の Firebase プロジェクトID（空なら固定しない）
+        type: string
+        default: ''
+      forbid-firebase-ids:
+        description: 設定に現れてはいけない Firebase プロジェクト・サイトID（カンマ区切り）
+        type: string
+        default: ''
+      allow-firebase-ids:
+        description: 許可する Firebase プロジェクト・サイトID（カンマ区切り）。これ以外が設定や URL にあると失敗
+        type: string
+        default: ''
+      integration-repo:
+        description: 指定すると、この commit を <integration-repo> の <integration-ref> に重ねたツリーでテストする（docs/CI.md 3章）
+        type: string
+        default: ''
+      integration-ref:
+        type: string
+        default: main
+      integration-keep-upstream:
+        description: 統合ツリーで統合先の版を残すファイル（空白区切り）
+        type: string
+        default: ''
+      label:
+        type: string
+        default: Regression
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+  PYTHON_VERSION: '3.12'
+  JAVA_VERSION: '21'
+  FIREBASE_TOOLS_VERSION: '14.27.0'
+  EXPECT_FIREBASE_PROJECT: ${{ inputs.expect-firebase-project }}
+  FORBID_FIREBASE_IDS: ${{ inputs.forbid-firebase-ids }}
+  ALLOW_FIREBASE_IDS: ${{ inputs.allow-firebase-ids }}
+
+jobs:
+  # 2つのジョブを並行して実行する。fast は Java 不要で数秒で結果が出る。Emulator を使う rules は時間がかかる。
+  # ジョブごとに別の新しい実行環境で動くため、「Build integration tree」の手順は意図的に両方に書いている。
+  fast:
+    name: ${{ inputs.label }} · static, guard, unit, build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ inputs.integration-repo == '' && 1 || 0 }}
+      - name: Build integration tree
+        if: inputs.integration-repo != ''
+        env:
+          REPO: ${{ inputs.integration-repo }}
+          REF: ${{ inputs.integration-ref }}
+          KEEP: ${{ inputs.integration-keep-upstream }}
+        # 入力値はスクリプトに ${{ }} で直接埋め込まず env 経由で渡す（値がシェルのコードとして解釈されないように）。
+        # KEEP は空白で区切って複数のパスとして渡すため、意図的に引用符で囲まない。
+        run: tools/ci/combine.sh "$REPO" "$REF" $KEEP
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Run fast regression checks
+        run: tools/ci/run.sh fast
+
+  rules:
+    name: ${{ inputs.label }} · Firestore rules (emulator)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ inputs.integration-repo == '' && 1 || 0 }}
+      - name: Build integration tree
+        if: inputs.integration-repo != ''
+        env:
+          REPO: ${{ inputs.integration-repo }}
+          REF: ${{ inputs.integration-ref }}
+          KEEP: ${{ inputs.integration-keep-upstream }}
+        run: tools/ci/combine.sh "$REPO" "$REF" $KEEP
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tools/rules-test/package-lock.json
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Cache Firebase emulator binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ env.FIREBASE_TOOLS_VERSION }}
+      - name: Install Firebase CLI (emulator only, never logged in)
+        run: npm install --global --no-audit --no-fund "firebase-tools@${FIREBASE_TOOLS_VERSION}"
+      - name: Run Firestore rules + client contract tests on the emulator
+        run: tools/ci/run.sh rules
