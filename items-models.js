@@ -3,9 +3,20 @@
 // Every builder returns a Group in metres, with userData.meshes (for raycasting) and, where useful, named parts.
 import * as THREE from 'three';
 
+// Text painted into the room's textures uses the system fonts, never the page's web fonts (Noto Sans / Serif JP from Google
+// Fonts). The room used to be built at page load, before those had arrived, so its papers were always laid out in the system
+// font; it is now built later, when they may have, and the line breaks would move. systemFonts(ctx) keeps the old faces.
+// scene.js turns `on` while it builds the room, so the item models made then (on the desk) match; the bag's are made later, as before.
+const NOTO = /"Noto (?:Sans|Serif) JP",\s*/g;
+const FONT = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'font');
+export function systemFonts(ctx) {
+  Object.defineProperty(ctx, 'font', { configurable: true, get() { return FONT.get.call(this); }, set(v) { FONT.set.call(this, String(v).replace(NOTO, '')); } });
+  return ctx;
+}
+systemFonts.on = false;
 const mat = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: .85, ...options });
 // `scale` paints the same picture on a larger canvas, so engraved words and printed lines stay sharp when the bag zooms in.
-const tex = (width, height, paint, scale = 1) => { const c = document.createElement('canvas'); c.width = Math.round(width * scale); c.height = Math.round(height * scale); const ctx = c.getContext('2d'); ctx.scale(scale, scale); paint(ctx, width, height); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+const tex = (width, height, paint, scale = 1) => { const c = document.createElement('canvas'); c.width = Math.round(width * scale); c.height = Math.round(height * scale); const ctx = c.getContext('2d'); if (systemFonts.on) systemFonts(ctx); ctx.scale(scale, scale); paint(ctx, width, height); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
 const seeded = seed => () => { seed = seed * 16807 % 2147483647; return seed / 2147483647; };
 const finish = (g) => { g.userData.meshes = []; g.traverse(o => { if (o.isMesh) { o.castShadow = true; g.userData.meshes.push(o); } }); return g; };
 const brass = () => mat('#c2a462', { metalness: .8, roughness: .3 });

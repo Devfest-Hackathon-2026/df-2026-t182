@@ -581,8 +581,7 @@ function update() {
     primary('画面を閉じる', () => go('n3'));
     focusFirst(foot.querySelector('.primary'));
   };
-  if (still) { go2(); return; }
-  const ok = btn('確認する', () => { ok.remove(); go2(); }, 'mif-btn primary'); foot.append(ok); focusFirst(ok);
+  go2(); // 「確認する」を挟まずに、そのままミーの返事へ（押すだけの中間の操作を減らした）
 }
 
 // 7. 3月：結末ごとの出来事（通知・つぶやき・メール・DM）
@@ -702,7 +701,8 @@ function ending() {
   if (run.world === 'W4' && ['E3', 'E4'].includes(run.ending)) why.append(h('p', '', '1月のニュースは、保護機能の強化を伝えていた。不備があったのは、その記事が扱っていない部分だった。'));
   rest.append(why);
   const acts = h('div', 'mif-endacts');
-  acts.append(btn('ふりかえる', openLook, 'mif-btn primary light'), btn('別の未来を見る', () => restart(), 'mif-btn light'), btn('記録へ戻る', () => close(), 'mif-btn light'));
+  // 戻り先は開いた場所に合わせる（本編の結果画面から開いたときは結果画面へ戻る）
+  acts.append(btn('ふりかえる', openLook, 'mif-btn primary light'), btn('別の未来を見る', () => restart(), 'mif-btn light'), btn(returnTo === 'report' ? '結果画面に戻る' : '記録へ戻る', () => close(), 'mif-btn light'));
   rest.append(acts);
   wrap.append(kind, title, sub, text, rest); endEl.append(bg, wrap);
   const all = [kind, title, ...paras, quote];
@@ -775,55 +775,85 @@ function close() {
   else showRecord();
 }
 
-/* ───────── 記録パネル（タイトルの「記録」）：結末／ゆきの物語／あとがき ───────── */
-// 本編の結末7種類（game.js の renderTitleMemory と同じ並び・同じ判定）。未発見は何も明かさない。
+/* ───────── 記録パネル（タイトルの「記録」）：前回の結果／たどり着いた結末／もうひとつの物語 ───────── */
+// 本編の結末7種類（game.js の renderTitleMemory と同じ並び・同じ判定）。見ていない結末は、数だけ示して名前も写真も出さない。
 const MAIN_ENDINGS = [['true', '雨のにおい', 'end-true.jpg'], ['trueSos', '雨のにおい・SOS', 'end-true.jpg'], ['secret', '最初の案内', 'end-secret.jpg'], ['fake', 'おかえり', 'end-fake.jpg'], ['be1', 'その先に', 'end-bad1.jpg'], ['be2', 'お迎え', 'end-bad2.jpg'], ['be3', '代わりに', 'photo-05-selfie.jpg']];
 function mainSeen() { const w = mainWorld(); const seen = w.endings || []; return MAIN_ENDINGS.filter(([k]) => seen.includes(k) || (k === 'trueSos' && seen.includes('true') && w.sosSent)).map(([k]) => k); }
-let recView = 'top';
-function recHead(inner, title, back) {
+// 前回の結果のサムネイル：その夜のタイプのミー（assets/img/types/<キー>.webp）。キーが無い古い記録は写真だけ。
+const TYPE_KEYS = ['SCW', 'SCD', 'SGW', 'SGD', 'MCW', 'MCD', 'MGW', 'MGD'];
+function recHead(inner, title) {
   const hd = h('header', 'rec-head');
-  if (back) { const b = btn('‹ 記録に戻る', back, 'rec-back'); b.setAttribute('aria-label', '記録に戻る'); hd.append(b); }
   const t = h('h2', '', title); t.id = 'rec-title'; hd.append(t);
   const c = btn('閉じる', () => {}, 'panel-close'); c.dataset.close = ''; c.setAttribute('aria-label', '閉じる'); hd.append(c);
   inner.append(hd);
 }
-function paintRecord(view = recView) {
-  recView = view;
+// 3つの段：見出し（左）／中身（中）／進み具合（右）。PC は横一列、スマホは見出しの下に中身。
+// 押せる段（前回の結果・もうひとつの物語）は段ぜんたいが一つのボタン。結末の段は見るだけなのでボタンにしない。
+function paintRecord() {
   const inner = document.getElementById('rec-in'); if (!inner) return;
   inner.replaceChildren();
   const seen = mainSeen();
-  if (view === 'endings') {
-    recHead(inner, 'たどり着いた結末', () => { paintRecord('top'); focusFirst(document.querySelector('#record .rec-row')); });
-    inner.append(h('p', 'rec-count', `${seen.length}／7`));
-    const grid = h('ul', 'rec-grid');
-    for (const [k, title, photo] of MAIN_ENDINGS) {
-      const ok = seen.includes(k); const li = h('li', 'rec-end' + (ok ? ' seen' : ''));
-      const ph = h('span', 'rec-thumb'); ph.setAttribute('aria-hidden', 'true'); if (ok) ph.style.backgroundImage = `url(${IMG}${photo})`;
-      li.append(ph, h('span', 'rec-endname', ok ? title : '？？？'));
-      if (!ok) li.setAttribute('aria-label', 'まだ見ていない結末');
-      grid.append(li);
-    }
-    inner.append(grid);
-    return;
-  }
   recHead(inner, '記録');
   const list = h('div', 'rec-list');
-  const row = (cls, photo, title, sub, side, onClick, label) => {
-    const b = btn('', onClick, 'rec-row ' + cls); b.setAttribute('aria-label', label);
-    const ph = h('span', 'rec-thumb'); if (photo) ph.style.backgroundImage = `url(${IMG}${photo})`; ph.setAttribute('aria-hidden', 'true');
-    const tx = h('span', 'rec-tx'); tx.append(h('span', 'rec-name', title)); if (sub) tx.append(h('span', 'rec-sub', sub));
-    b.append(ph, tx, h('span', 'rec-side', side)); return b;
+  const band = (cls, label, onClick, aria) => {
+    const b = onClick ? btn('', onClick, 'rec-band rec-row ' + cls) : h('section', 'rec-band ' + cls);
+    if (aria) b.setAttribute('aria-label', aria);
+    b.append(h(onClick ? 'span' : 'h3', 'rec-label', label)); return b;
   };
+  const media = (thumbCls, bg, name, sub) => {
+    const m = h('span', 'rec-media'); const ph = h('span', 'rec-thumb ' + thumbCls); ph.setAttribute('aria-hidden', 'true'); if (bg) ph.style.backgroundImage = bg;
+    // 名前は「　」の所でだけ折り返す（「ゆきの物語」と「同意って、何に？」を途中で割らない）
+    const nm = h('span', 'rec-name'); name.split('　').forEach((part, i) => { if (i) nm.append('　'); nm.append(h('span', 'rec-nw', part)); });
+    const tx = h('span', 'rec-tx'); tx.append(nm); if (sub) tx.append(h('span', 'rec-sub', sub));
+    m.append(ph, tx); return m;
+  };
+  const side = (text, arrow = true) => { const s = h('span', 'rec-side'); if (text) s.append(h('span', 'rec-count', text)); if (arrow) s.append(h('span', 'rec-chev', '›')); return s; };
+
+  // 1. 前回の結果（直近の夜のタイプとふりかえり）。あとがきもこの中にあるので、別の項目は作らない。
   let night = null; try { night = JSON.parse(localStorage.getItem('mi-last-night')); } catch {}
-  // 前回の結果＝新しいあとがき（タイプ→今夜の行動→気づき→もっと読む）。「あとがきを読む」はこれにまとめた
-  const typeName = night && night.report && night.report.name;
-  if (seen.length || (night && night.ending)) list.append(row('rec-report', 'column-hero.jpg', '前回の結果', typeName || '最後に遊んだ夜のふりかえり', '', () => { document.getElementById('record').hidden = true; dispatchEvent(new CustomEvent('mi:afterword')); }, '前回の結果' + (typeName ? '　' + typeName : '')));
-  list.append(row('rec-main', seen.length ? 'end-bad1.jpg' : '', 'たどり着いた結末', '', `${seen.length}／7`, () => { paintRecord('endings'); focusFirst(document.querySelector('#record .rec-back')); }, `たどり着いた結末　${seen.length}／7`));
+  if (seen.length || (night && night.ending)) {
+    const rep = night && night.report; const typeName = rep && rep.name; const key = rep && TYPE_KEYS.includes(rep.key) ? rep.key : '';
+    const endKey = night && night.ending === 'true' && night.sosSent ? 'trueSos' : night && night.ending;
+    const endName = (MAIN_ENDINGS.find(([k]) => k === endKey) || [])[1];
+    const bg = (key ? `url(${IMG}types/${key}.webp), ` : '') + `url(${IMG}column-hero.jpg)`;
+    const b = band('rec-report', '前回の結果', () => { document.getElementById('record').hidden = true; dispatchEvent(new CustomEvent('mi:afterword')); }, `前回の結果を見る${typeName ? '　' + typeName : ''}`);
+    b.append(media(key ? 'type' : '', bg, typeName || 'この夜のふりかえり', endName ? `結末「${endName}」` : ''), side(''));
+    list.append(b);
+  }
+
+  // 2. たどり着いた結末（見た結末だけを並べる）
+  {
+    const sec = band('rec-main no-phrase', 'たどり着いた結末'); // 文節分け（wrap.js）を外し、結末名は「・」の後でだけ折り返す
+    const body = h('div', 'rec-media');
+    if (seen.length) {
+      const grid = h('ul', 'rec-grid');
+      for (const [k, title, photo] of MAIN_ENDINGS) {
+        if (!seen.includes(k)) continue;
+        const li = h('li', 'rec-end seen'); const ph = h('span', 'rec-thumb'); ph.setAttribute('aria-hidden', 'true'); ph.style.backgroundImage = `url(${IMG}${photo})`;
+        // 「雨のにおい・SOS」は、狭い写真の下でも行頭に「・」が来ないように「雨のにおい」と「SOS」の2行で見せる（読み上げは元の名前）
+        const [main, ...vars] = title.split('・'); const nm = h('span', 'rec-endname', main); for (const v of vars) nm.append(h('span', 'rec-var', v));
+        li.setAttribute('aria-label', title); li.append(ph, nm); grid.append(li);
+      }
+      body.append(grid);
+    }
+    const rest = 7 - seen.length;
+    body.append(h('p', 'rec-rest', !seen.length ? 'まだ、どの結末にもたどり着いていません。' : rest ? `まだ見ていない結末が${rest}つあります。` : '7つの結末を、すべて見ました。'));
+    sec.append(body, side(`${seen.length}／7`, false));
+    sec.setAttribute('aria-label', `たどり着いた結末　${seen.length}／7`);
+    list.append(sec);
+  }
+
+  // 3. もうひとつの物語（実装済みのIF短編1作品だけ）
   const r = loadRun(); const found = readCollected().length;
   const mid = r && r.step !== 'end' && r.step !== 'dm1';
-  const side = found ? `${found}／5` : mid ? 'つづき' : '';
-  if (!unlocked()) { const b = row('rec-if locked', 'if/if-thumb.jpg', 'ゆきの物語', '結末を一つ見ると読めます', '', () => {}, 'ゆきの物語　結末を一つ見ると読めます'); b.disabled = true; list.append(b); } // クリア前：押せないことが見て分かる形で
-  else list.append(row('rec-if', 'if/if-thumb.jpg', 'ゆきの物語', '同意って、何に？', side, () => open('record'), `ゆきの物語「同意って、何に？」${mid ? '　つづきから読む' : ''}${found ? `　見た結末 ${found}／5` : ''}`));
+  const thumb = `url(${IMG}if/if-thumb.jpg)`;
+  if (!unlocked()) { // クリア前：押せないことが見て分かる形で
+    const b = band('rec-if locked', 'もうひとつの物語', () => {}, 'もうひとつの物語　本編の結末を一つ見ると読めます'); b.disabled = true;
+    b.append(media('', thumb, 'ゆきの物語　同意って、何に？', '本編の結末を一つ見ると読めます'), side('', false)); list.append(b);
+  } else {
+    const b = band('rec-if', 'もうひとつの物語', () => open('record'), `もうひとつの物語を読む　ゆきの物語「同意って、何に？」${mid ? '　つづきから' : ''}${found ? `　見た結末 ${found}／5` : ''}`);
+    b.append(media('', thumb, 'ゆきの物語　同意って、何に？', mid ? 'つづきから読めます' : ''), side(found ? `結末 ${found}／5` : '')); list.append(b);
+  }
   inner.append(list);
 }
 

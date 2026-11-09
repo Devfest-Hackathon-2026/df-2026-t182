@@ -1,45 +1,51 @@
 /* ゆきの物語「同意って、何に？」と、タイトルの「記録」。クラス名は mif- / rec- で本編と分ける。 */
 
-/* ── 記録パネル：結末／ゆきの物語／あとがき ── */
-#record .panel-in{width:min(100%,820px)}
+/* ── 記録パネル：前回の結果／たどり着いた結末／もうひとつの物語 ──
+   段は3つ。PC は「見出し｜中身｜進み具合」を横一列に、スマホは見出しの下に中身。見出しだけ Kowai Mincho、ほかは UI の書体で 400/500。 */
+#record .panel-in{width:min(100%,960px)}
 #record .rec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 #record .rec-head h2{flex:1;margin:0;font-family:"Kowai Mincho","Noto Sans JP",sans-serif;font-weight:400;font-size:26px;letter-spacing:.12em}
-#record .rec-back{min-height:44px;padding:0 8px 0 0;font-size:16px;color:var(--ui-sub)}
-#record .rec-back:hover,#record .rec-back:focus-visible{color:#f4f2ec;outline:0}
-#record .rec-list{display:flex;flex-direction:column;gap:28px}
-#record .rec-row{position:relative;display:grid;grid-template-columns:300px minmax(0,1fr) auto;align-items:center;gap:28px;width:100%;padding:0;text-align:left;color:#a9a7a0;transition:color .15s}
-#record .rec-thumb{display:block;width:100%;aspect-ratio:16/9;background:#141515 center/cover no-repeat;filter:brightness(.72) saturate(.8);transition:filter .2s}
+#record .rec-list{display:flex;flex-direction:column;border-bottom:1px solid var(--ui-hair)}
+#record .rec-band{display:grid;grid-template-columns:200px minmax(0,1fr) auto;align-items:center;gap:24px;width:100%;margin:0;padding:22px 0;border-top:1px solid var(--ui-hair);text-align:left;color:#a9a7a0}
+#record .rec-label{margin:0;font-family:"Kowai Mincho","Noto Sans JP",sans-serif;font-weight:400;font-size:22px;letter-spacing:.08em;line-height:1.4;color:#c4c2bb;transition:color .15s}
+#record .rec-media{display:flex;align-items:center;gap:20px;min-width:0}
+#record .rec-thumb{flex:none;display:block;width:176px;aspect-ratio:16/9;background:#141515 center/cover no-repeat;filter:brightness(.72) saturate(.8);transition:filter .2s}
+#record .rec-thumb.type{background-size:auto 96%,cover;background-position:center bottom,center;filter:brightness(.86) saturate(.9)}
 #record .rec-if .rec-thumb{background-position:38% center}
-#record .rec-tx{display:flex;flex-direction:column;gap:6px;min-width:0}
-#record .rec-name{font-family:"Kowai Mincho","Noto Sans JP",sans-serif;font-size:24px;letter-spacing:.1em;color:#c4c2bb;line-height:1.4}
-#record .rec-sub{font-size:16px;letter-spacing:.06em;color:#a9a7a0}
-#record .rec-side{font-size:17px;letter-spacing:.1em;color:#a9a7a0;font-variant-numeric:tabular-nums}
-#record .rec-row::after{content:"";position:absolute;left:328px;bottom:-8px;width:0;height:1px;background:#f4f2ec;transition:width .2s}
-#record .rec-row:hover .rec-name,#record .rec-row:focus-visible .rec-name{color:#f4f2ec}
-#record .rec-row:hover .rec-thumb,#record .rec-row:focus-visible .rec-thumb{filter:none}
-#record .rec-row:hover::after,#record .rec-row:focus-visible::after{width:48px}
-#record .rec-row:focus-visible{outline:0}
-#record .rec-afterword{display:inline-flex;align-items:center;min-height:44px;margin-top:36px;padding:0;font-size:16px;letter-spacing:.08em;color:#8a8983;text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px;text-decoration-color:#5d5c58}
-#record .rec-afterword:hover,#record .rec-afterword:focus-visible{color:#f4f2ec;text-decoration-color:#f4f2ec;outline:0}
-#record .rec-count{margin:-8px 0 20px;font-size:17px;letter-spacing:.1em;color:#a9a7a0}
-#record .rec-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 16px}
-#record .rec-end{display:flex;flex-direction:column;gap:8px}
-#record .rec-end .rec-thumb{aspect-ratio:4/5;filter:brightness(.8) saturate(.85)}
-#record .rec-end:not(.seen) .rec-thumb{background:#141515;border:1px solid #ffffff14}
-#record .rec-endname{font-size:15px;letter-spacing:.06em;color:#c4c2bb}
-#record .rec-end:not(.seen) .rec-endname{color:#6f6e69}
+#record .rec-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+#record .rec-name{font-size:17px;font-weight:500;line-height:1.6;color:#c4c2bb;transition:color .15s}
+#record .rec-sub{font-size:15px;line-height:1.6;color:#a9a7a0}
+#record .rec-side{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:24px;font-size:15px;color:#a9a7a0;font-variant-numeric:tabular-nums;white-space:nowrap}
+#record .rec-chev{font-size:24px;line-height:1;color:#7f7e78;transition:transform .2s,color .15s}
+#record button.rec-band:hover .rec-label,#record button.rec-band:focus-visible .rec-label,#record button.rec-band:hover .rec-name,#record button.rec-band:focus-visible .rec-name{color:#f4f2ec}
+#record button.rec-band:hover .rec-thumb,#record button.rec-band:focus-visible .rec-thumb{filter:none}
+#record button.rec-band:hover .rec-chev,#record button.rec-band:focus-visible .rec-chev{color:#f4f2ec;transform:translateX(3px)}
+#record button.rec-band:focus-visible{outline:1px solid #f4f2ec;outline-offset:4px}
+#record button.rec-band.locked{cursor:default}
+#record button.rec-band.locked .rec-thumb{filter:brightness(.4) saturate(.4)}
+#record button.rec-band.locked .rec-label,#record button.rec-band.locked .rec-name{color:#8a8983}
+/* 結末の段：見た結末だけを小さな縦長の写真で。見ていない数は一文で。 */
+#record .rec-main{align-items:start}
+#record .rec-main .rec-media{flex-direction:column;align-items:flex-start;gap:12px}
+#record .rec-grid{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:16px 12px}
+#record .rec-end{display:flex;flex-direction:column;gap:6px;width:96px}
+#record .rec-end .rec-thumb{width:100%;aspect-ratio:4/5;filter:brightness(.85) saturate(.85)}
+#record .rec-endname{font-size:14px;line-height:1.5;color:#c4c2bb;word-break:keep-all;overflow-wrap:anywhere}
+#record .rec-nw{display:inline-block}
+#record .rec-endname .rec-var{display:block}
+#record .rec-rest{margin:0;font-size:15px;line-height:1.7;color:#a9a7a0}
+#record .rec-main .rec-label{padding-top:2px}
 @media (max-width:700px){
-  #record .rec-list{gap:24px}
-  #record .rec-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"img img" "tx side";gap:10px 12px}
-  #record .rec-row .rec-thumb{grid-area:img;aspect-ratio:2/1}
-  #record .rec-tx{grid-area:tx;gap:2px}
-  #record .rec-side{grid-area:side;align-self:end;padding-bottom:2px}
-  #record .rec-name{font-size:21px}
-  #record .rec-row::after{left:0;bottom:-6px}
-  #record .rec-afterword{margin-top:28px}
-  #record .rec-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+  #record .rec-head{margin-bottom:12px}
+  #record .rec-band{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label side" "media media";gap:12px;padding:18px 0}
+  #record .rec-label{grid-area:label;font-size:20px}
+  #record .rec-media{grid-area:media;gap:14px}
+  #record .rec-side{grid-area:side}
+  #record .rec-thumb{width:120px}
+  #record .rec-name{font-size:16px}
+  #record .rec-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 10px;width:100%}
+  #record .rec-end{width:auto}
 }
-@media (max-width:700px) and (max-height:700px){#record .rec-row .rec-thumb{aspect-ratio:5/2}}
 
 /* ── タイトルの歯車（設定） ── */
 #title-settings.gear{position:absolute;top:calc(16px + env(safe-area-inset-top));right:clamp(12px,3vw,40px);z-index:2;width:48px;height:48px;min-height:0;margin:0;padding:0;display:flex;align-items:center;justify-content:center;background:none;border:0}

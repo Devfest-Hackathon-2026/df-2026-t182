@@ -1,27 +1,27 @@
-/* 授業・ワークショップ（学生側）。読みやすさ優先：本文16px、補足14px、見出し22px。ウェイトは400/500/700、フォントは Noto Sans JP。 */
+/* グループ利用（参加者側）。読みやすさ優先：本文16px、補足14px、見出し22px。ウェイトは400/500/600、フォントは Noto Sans JP。 */
 .class-panel{z-index:40}
 .class-panel .panel-in{width:min(100%,640px);font-family:"Noto Sans JP","Hiragino Sans",sans-serif;font-size:16px;line-height:1.8;color:var(--ui-text)}
 .cl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
 .cl-titles{min-width:0}
 .cl-kicker{margin:0 0 4px;font-size:14px;font-weight:500;color:var(--ui-sub)}
-.class-panel h2{margin:0;font-size:22px;font-weight:700;line-height:1.5;color:var(--ui-ink);overflow-wrap:anywhere}
+.class-panel h2{margin:0;font-size:22px;font-weight:600;line-height:1.5;color:var(--ui-ink);overflow-wrap:anywhere}
 .class-panel h2:focus{outline:0}
-.class-panel h3{margin:0 0 8px;font-size:16px;font-weight:700;color:var(--ui-ink)}
+.class-panel h3{margin:0 0 8px;font-size:16px;font-weight:600;color:var(--ui-ink)}
 .cl-lead{margin:0 0 20px}
 .cl-guide{margin:0 0 16px;padding:12px 14px;border-left:3px solid var(--ui-hair);background:var(--ui-fill);white-space:pre-wrap}
 .cl-from{display:block;font-size:14px;font-weight:500;color:var(--ui-sub)}
 .cl-points{margin:0 0 24px;padding-left:1.2em}
 .cl-points li{margin:2px 0}
 .cl-form{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0 0 8px}
-.cl-label{font-size:16px;font-weight:700;color:var(--ui-ink)}
+.cl-label{font-size:16px;font-weight:600;color:var(--ui-ink)}
 .cl-input{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:#0f1111;color:var(--ui-ink);font:inherit;font-size:16px}
 .cl-input:focus{outline:2px solid var(--ui-ink);outline-offset:1px}
 textarea.cl-input{min-height:112px;resize:vertical;line-height:1.7}
 .cl-code{max-width:240px;font-size:22px;letter-spacing:.2em;text-transform:uppercase}
 .cl-hint{margin:4px 0 8px;font-size:14px;line-height:1.7;color:var(--ui-sub)}
-.cl-hint b{color:var(--ui-text);font-weight:700}
+.cl-hint b{color:var(--ui-text);font-weight:600}
 .cl-warn{margin:8px 0 12px;padding:10px 12px;border-radius:6px;background:rgba(226,194,122,.12);color:#ead39c;font-size:15px;line-height:1.7}
-.cl-state{margin:0 0 4px;font-weight:700;color:var(--ui-ink)}
+.cl-state{margin:0 0 4px;font-weight:600;color:var(--ui-ink)}
 .cl-msg{min-height:0;margin:4px 0;font-size:15px;color:var(--ui-text)}
 .cl-msg:empty{display:none}
 .cl-msg.err{color:#f0b3a3}
@@ -29,7 +29,7 @@ textarea.cl-input{min-height:112px;resize:vertical;line-height:1.7}
 .cl-col{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:20px;max-width:420px}
 .cl-btn{min-height:48px;padding:0 20px;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:transparent;color:var(--ui-ink);font:inherit;font-size:16px;font-weight:500;cursor:pointer;text-align:center}
 .cl-btn:hover{background:var(--ui-fill)}
-.cl-btn.main{background:var(--ui-ink);border-color:var(--ui-ink);color:#111;font-weight:700}
+.cl-btn.main{background:var(--ui-ink);border-color:var(--ui-ink);color:#111;font-weight:600}
 .cl-btn.main:hover{background:#fff}
 .cl-btn.danger{border-color:#d99a8a;color:#f0b3a3}
 .cl-btn.main.danger{background:#d99a8a;color:#1a0f0c}
@@ -42,7 +42,7 @@ textarea.cl-input{min-height:112px;resize:vertical;line-height:1.7}
 .cl-confirm{margin-top:20px;padding:16px;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:#141616}
 .cl-confirm p{margin:0}
 .cl-q{margin:0 0 20px;padding:0;border:0}
-.cl-q legend{margin-bottom:8px;font-weight:700;color:var(--ui-ink)}
+.cl-q legend{margin-bottom:8px;font-weight:600;color:var(--ui-ink)}
 .cl-qtext{margin:0;font-size:15px}
 .cl-q .cl-qtext:last-of-type{margin-bottom:8px}
 .cl-opt{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 0;cursor:pointer}
@@ -72,8 +72,8 @@ textarea.cl-input{min-height:112px;resize:vertical;line-height:1.7}
 #column .rp-act .cc-btn{border-radius:999px;background:var(--c-paper,#F2F0E9);color:#101816}
 #column .col-class[hidden]{display:none}
 #column .cc-kicker{margin:0;font-size:14px;font-weight:500;color:var(--c-sub,#88958E)}
-#column .cc-title{margin:0 0 6px;font-size:18px;font-weight:700;line-height:1.5;color:#eef2ec}
+#column .cc-title{margin:0 0 6px;font-size:18px;font-weight:600;line-height:1.5;color:#eef2ec}
 #column .cc-text{margin:0 0 12px;font-size:16px;line-height:1.8}
-#column .cc-btn{min-height:48px;padding:0 24px;border:0;border-radius:6px;background:#ecebe6;color:#111;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+#column .cc-btn{min-height:48px;padding:0 24px;border:0;border-radius:6px;background:#ecebe6;color:#111;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
 #column .cc-btn:hover{background:#fff}
 @media (max-width:700px){#column .col-class:not(.rp-act .col-class){margin:8px 16px 24px;padding:16px}}

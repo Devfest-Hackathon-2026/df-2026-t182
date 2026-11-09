@@ -47,6 +47,7 @@
 <div id="notices" aria-live="polite"></div>
 <section id="dark" hidden aria-live="polite"></section>
 <div id="curtain" hidden></div>
+<div id="room-wait" hidden role="status"><p>部屋を準備しています</p><i aria-hidden="true"></i></div>
 <section id="paper" hidden><div class="paper-inner"><header><b id="paper-title"></b><button id="paper-close" class="ghost" aria-label="閉じる">×</button></header><img alt="書類"></div></section>
 
 <section id="title">
@@ -56,15 +57,16 @@
   </div>
   <p id="title-whisper" class="whisper no-phrase" hidden></p>
   <nav class="title-menu" aria-label="メニュー">
-    <button id="start" class="menu-main no-phrase">はじめる</button>
+    <button id="start" class="menu-main no-phrase">はじめから</button>
     <button id="continue" class="no-phrase" hidden>つづきから</button>
-    <button id="title-record" class="no-phrase" hidden>記録</button>
+    <button id="title-record" class="no-phrase">記録</button>
   </nav>
-  <div class="title-aux no-phrase"><button id="title-code" type="button">コードを入力</button><a href="./teach/">授業・ワークショップで使う</a></div>
+  <div id="boot-fail" class="boot-fail no-phrase" role="alert" hidden><p>読み込みに失敗しました。ページを再読み込みしてください</p><button id="boot-reload" type="button">再読み込みする</button></div>
+  <div class="title-aux no-phrase"><button id="title-code" type="button">コードで参加</button><a href="./teach/">グループで使う</a></div>
   <button id="title-settings" class="gear" aria-label="設定"><i aria-hidden="true"></i></button>
   <div class="title-confirm" id="title-confirm" role="alertdialog" aria-labelledby="tc-text" hidden>
-    <p id="tc-text">新しくはじめると、いまの続きは消えます。</p>
-    <div><button id="tc-yes" class="menu-main no-phrase">続きを消してはじめる</button><button id="tc-no" class="no-phrase">やめる</button></div>
+    <p id="tc-text">はじめから遊ぶと、いまの続きは消えます。</p>
+    <div><button id="tc-yes" class="menu-main no-phrase">続きを消してはじめから遊ぶ</button><button id="tc-no" class="no-phrase">やめる</button></div>
   </div>
   <footer class="title-credit no-phrase"><span>© 2026 182 lab</span></footer>
   <p id="title-date" hidden></p>
@@ -75,7 +77,7 @@
   <div class="panel-in" id="rec-in"></div>
 </section>
 
-<!-- 授業・ワークショップ（コードを入力、参加、結果を送る）。中身は class.js が描く -->
+<!-- グループ利用の参加者側（コードで参加、参加、結果を送る）。中身は class.js が描く -->
 <section id="class" class="panel class-panel" role="dialog" aria-labelledby="cl-title" hidden>
   <div class="panel-in" id="class-in"></div>
 </section>
@@ -135,7 +137,7 @@
     <!-- 結果（report.js が描く）：主役＝今回のタイプ／本文＝あなたがしたこと・今夜の気づき／操作＝次にできること。授業の夜は #col-class を操作の区域へ移す -->
     <div id="report-root"></div>
     <!-- 授業の夜だけ：結果を送る（class.js が描く） -->
-    <section class="col-class" id="col-class" hidden aria-label="授業に結果を送る"></section>
+    <section class="col-class" id="col-class" hidden aria-label="主催者に結果を送る"></section>
 
     <!-- 補足は折りたたみ2つだけ：タイプ診断について／あとがきを読む（どちらも最初は閉じておく） -->
     <details class="more" id="more-types">
@@ -238,7 +240,7 @@
       <!-- 授業で使う人・出典：一般の流れから離して、あとがきのいちばん下に -->
       <div class="more-aside">
         <section class="aw-sec teach" id="more-teach">
-          <h3 class="aw-h">授業で使う人へ</h3>
+          <h3 class="aw-h">グループで使う人へ</h3>
           <div class="more-body" id="teach-body"></div>
         </section>
         <section class="aw-sec teach refs2" id="more-refs">
@@ -259,6 +261,39 @@
   </div>
 </section>
 
+<script>
+// Start-up watch (before the modules). game.js calls __miBoot() once the title works. Until then a press on the title is kept and
+// handed over; a module that fails to load (a new page with an old cached file, a dropped connection) or a start that has not
+// happened in 20 s shows the note on the title. Its button fetches the page's own files again, then reloads.
+(function () {
+  var booted = false, pending = null;
+  var note = function () { return document.getElementById('boot-fail'); };
+  window.__miBootFail = function () { var n = note(); if (n) n.hidden = false; };
+  window.__miBoot = function (resuming) {
+    booted = true; var n = note(); if (n) n.hidden = true;
+    if (pending && !resuming) { var b = document.getElementById(pending); pending = null; if (b && !b.hidden) b.click(); }
+  };
+  addEventListener('click', function (e) {
+    if (booted) return; var b = e.target.closest && e.target.closest('#start, #title-record, #title-code, #title-settings');
+    if (b) pending = b.id;
+  }, true);
+  addEventListener('error', function (e) {
+    if (booted) return; var t = e.target;
+    if ((t && t.tagName === 'SCRIPT') || e instanceof ErrorEvent) window.__miBootFail();
+  }, true);
+  setTimeout(function () { if (!booted) window.__miBootFail(); }, 20000);
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('#boot-reload')) return;
+    e.target.closest('#boot-reload').disabled = true;
+    var urls = [location.href];
+    try { performance.getEntriesByType('resource').forEach(function (r) { if (r.name.indexOf(location.origin) === 0 && /\.(js|css|json|html)(\?|$)/.test(r.name)) urls.push(r.name); }); } catch (_) {}
+    ['game.js', 'scene.js', 'items3d.js', 'if.js', 'style.css', 'if.css'].forEach(function (f) { urls.push(new URL('./' + f, location.href).href); });
+    var go = function () { location.reload(); };
+    Promise.all(urls.map(function (u) { return fetch(u, { cache: 'reload' }).catch(function () {}); })).then(go, go);
+    setTimeout(go, 5000);
+  });
+})();
+</script>
 <script type="module" src="./wrap.js"></script>
 <script type="module" src="./game.js"></script>
 <script type="module" src="./if.js"></script>

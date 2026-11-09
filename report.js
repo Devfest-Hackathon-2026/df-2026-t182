@@ -199,7 +199,7 @@ const BAD = ['be1', 'be2', 'be3', 'fake'];
 // data: { state, reached, name, sources, ending, fixed, axes, log } / null（結末の名前しか残っていない端末）
 // opts: { classNight, stepBack, gate, restart, leave: [label, fn], yuki, openYuki, shareEnding }
 // 最初に見せるのは4つだけ：今回のタイプ（主役）／あなたがしたこと・今夜の気づき（本文）／次にできること（操作）。
-// それ以外（この夜の記録・ミーに起きていたこと・現実では・この作品について・タイプの見方・授業で使う人へ・出典）は「補足を読む」の中。
+// それ以外（この夜の記録・ミーに起きていたこと・現実では・この作品について・タイプの見方・グループで使う人へ・出典）は折りたたみの中。
 export function renderReport(root, data, opts = {}) {
   { const cc = document.getElementById('col-class'); if (cc && root.contains(cc)) root.after(cc); } // the class box lives in the action zone while shown; put it back before redrawing
   root.replaceChildren(); closeSheet();
@@ -235,6 +235,7 @@ export function renderReport(root, data, opts = {}) {
 }
 
 // 操作：次にできること（ここにだけボタンを置く）。主ボタンは2つまで、ほかは小さい文字の操作。
+// 並び（改修指示書11）：別の選び方を見る → タイプをシェアする（BAD END は「この結末の直前に戻る」）→ ゆきの物語を読む → やり直す → タイトルへ戻る。
 function actions(data, r, opts) {
   const zone = h('section', 'rp-act'); zone.setAttribute('aria-labelledby', 'rp-act-h'); const hd = h('h2', 'rp-h', '次にできること'); hd.id = 'rp-act-h'; zone.append(hd);
   const bad = r && BAD.includes(r.st.ending);
@@ -242,16 +243,16 @@ function actions(data, r, opts) {
   const all = {};
   if (r) {
     all.if = ['別の選び方を見る', () => openSheet('別の選び方を見る', ifContent(r.st, data.reached || {}, r.fixed))];
-    all.share = ['結果をシェア', () => { const n = shareSection(r.t, opts); openSheet('結果をシェア', n); n._build?.(); }];
+    all.share = ['タイプをシェアする', () => { const n = shareSection(r.t, opts); openSheet('タイプをシェアする', n); n._build?.(); }];
   }
   if (opts.stepBack) all.step = ['この結末の直前に戻る', opts.stepBack];
-  const order = [...(opts.classNight ? ['class'] : []), ...(all.step ? ['step'] : []), ...(r && !bad ? ['share'] : []), ...(all.if ? ['if'] : [])];
+  const order = [...(opts.classNight ? ['class'] : []), ...(all.if ? ['if'] : []), ...(r && !bad ? ['share'] : []), ...(all.step ? ['step'] : [])];
   const main = order.slice(0, 2).filter(k => k !== 'class');
   const row = h('div', 'rp-main');
   main.forEach((k, i) => { const b = h('button', 'rp-btn' + (i === 0 && !opts.classNight ? ' fill' : ''), all[k][0]); b.type = 'button'; b.onclick = all[k][1]; row.append(b); });
   if (row.childElementCount) zone.append(row);
   const links = h('div', 'rp-links'); const link = (label, fn, note) => { const w = h('span', 'rp-link'); const b = h('button', 'textlink', label); b.type = 'button'; b.onclick = fn; w.append(b); if (note) w.append(h('small', '', note)); links.append(w); };
-  for (const k of ['share', 'if', 'step']) if (all[k] && !main.includes(k)) link(...all[k]);
+  for (const k of ['if', 'share', 'step']) if (all[k] && !main.includes(k)) link(...all[k]);
   const yk = opts.yuki ? opts.yuki() : null; if (yk) link('ゆきの物語を読む', () => opts.openYuki?.(), yk.first ? '読めるようになりました' : '');
   if (opts.gate) link('点検通路の手前からやり直す', opts.gate);
   if (opts.restart) link('はじめから遊ぶ', opts.restart);
@@ -321,19 +322,19 @@ function fillTypes() {
     '三つの観点の組み合わせで、8つに分けています。①操作：番号錠・制御盤・管理者ロック・ミーの設定を、自分で操作したか、ミーに任せたか。②確かめ方：ミーの答えのあとに「根拠は？」「いつの情報？」と聞いたか、掲示・記録・公式サイトを見たか、それともその場の案内で進んだか。③調べ方：出口に関係のない場所まで広く見たか、メモカードや会話の記録のような一つの手がかりを最後まで追ったか。',
     '扉止めや足元の確かめ方は、タイプとは別の「動く前の備え」として、「あとがきを読む」の「この夜の記録」に載せています。',
     '調べた数やクリックの数だけでは決めていません。その場面に来ていない行動は数えません。記録が少ない観点があるときは、ふりかえりの下に「傾きは小さめ」と添えます。差がまったくないときは、操作は「自分で」、確かめ方は「その場の情報で」、調べ方は「深く」の側に置きます。',
-    'タイプは結末に着いたときに決まり、「前回の結果」に残ります。「結末の直前に戻る」で別の結末に着くと、その夜の結果に置きかわります。同じ人でも、遊び方が変わればタイプは変わります。性格や能力を測るものではありません。記録と結果はこの端末の中だけにあります。授業に参加して「結果を送る」を押したときだけ、確認した内容が先生に届きます。'
+    'タイプは結末に着いたときに決まり、「前回の結果」に残ります。「結末の直前に戻る」で別の結末に着くと、その夜の結果に置きかわります。同じ人でも、遊び方が変わればタイプは変わります。性格や能力を測るものではありません。記録と結果はこの端末の中だけにあります。参加コードで参加して「結果を送る」を押したときだけ、確かめた内容が主催者に届きます。'
   ]) box.append(h('p', '', p));
 }
-// 先生・授業で使う人へ（一般の導線から離して、一番下に置く）
+// グループ（授業・研修・ワークショップなど）で使う人へ（一般の導線から離して、一番下に置く）
 function fillTeach() {
   const box = document.getElementById('teach-body'); if (!box || box.childElementCount) return;
   const P = t => box.append(h('p', '', t)); const H = t => box.append(h('h3', '', t)); const L = arr => { const ol = h('ol'); for (const t of arr) ol.append(h('li', '', t)); box.append(ol); };
-  P('プレイのあと、この画面のタイプと「プレイのふりかえり」をもとに、生徒が自分の判断を振り返る使い方を想定しています。タイプで成績はつけないでください。タイプに正解・不正解はなく、ミーに任せたこともそれ自体は間違いではありません。');
+  P('プレイのあと、この画面のタイプと「プレイのふりかえり」をもとに、参加者が自分の判断を振り返る使い方を想定しています。タイプで評価や成績はつけないでください。タイプに正解・不正解はなく、ミーに任せたこともそれ自体は間違いではありません。');
   H('見ている観点');
   L(['操作：番号錠や管理者ロックを、自分で入れたか、ミーに任せたか。', '確かめ方：ミーの答えのあとに、掲示・記録・公式サイトを見たか。「根拠は？」「いつの情報？」と聞いたか。', '調べ方：出口に関係のない場所まで見たか、一つの手がかりを最後まで追ったか。', '備え（タイプとは別）：資材庫の扉を止めたか、階段で足元を照らしたか、自分で助けを呼んだか。']);
-  H('話し合いの問い');
+  H('話し合いのヒント');
   L(['ミーに任せた場面を一つ選んでください。なぜ任せましたか。そのとき、何か確かめましたか。', 'ミーの言葉と、掲示や記録が食い違った場面はどこでしたか。どちらを信じて、何で決めましたか。', '任せてよかった場面と、自分でしたほうがよかった場面を、一つずつ挙げてください。', 'ふだん使っているアプリで、今夜のミーと同じように任せていることは何ですか。']);
   H('補足の例');
-  L(['ミーの031は、2028年の運用情報から出た番号でした。任せる前に「いつの情報？」と一つ聞けば、任せたままでも食い違いに気づけました。', '確かめることに時間がかかった生徒には、何を確かめれば十分だったか（日付と出典など）を聞いてみてください。', 'あとがきの「この夜の記録」にある「備え」は、閉じ込められる場所の手前で戻り道を残したかを話す材料に使えます。']);
-  P('このレポートで振り返りが深まるかどうかは、まだ確かめていません。記録はこの端末の中だけにあります。授業で結果を集めるときは、タイトルの「授業・ワークショップで使う」から授業を作ってください。学生が内容を確かめて「結果を送る」を押したものだけが届きます。');
+  L(['ミーの031は、2028年の運用情報から出た番号でした。任せる前に「いつの情報？」と一つ聞けば、任せたままでも食い違いに気づけました。', '確かめることに時間がかかった参加者には、何を確かめれば十分だったか（日付と出典など）を聞いてみてください。', 'あとがきの「この夜の記録」にある「備え」は、閉じ込められる場所の手前で戻り道を残したかを話す材料に使えます。']);
+  P('このレポートで振り返りが深まるかどうかは、まだ確かめていません。記録はこの端末の中だけにあります。グループで結果を集めるときは、タイトル画面の下にある主催者向けの入口からセッションを作ってください。参加者が内容を確かめて「結果を送る」を押したものだけが届きます。');
 }

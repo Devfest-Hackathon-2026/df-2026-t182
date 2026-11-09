@@ -229,7 +229,8 @@ async function voiceBytes(url, preload = false) {
   const key = (url.match(/assets\/voice\/([0-9a-f]{16})\.mp3$/) || [])[1];
   const at = key && voicePacks && voicePacks.index[key];
   if (!at) { const res = await fetch(url); return res.ok ? res.arrayBuffer() : null; }
-  const file = './assets/voice/' + voicePacks.files[at[0]];
+  const v = voicePacks.v && voicePacks.v[at[0]]; // the pack's content hash (tools/voice_pack.py): a changed pack is a new URL
+  const file = './assets/voice/' + voicePacks.files[at[0]] + (v ? '?v=' + v : '');
   if (!packLoads.has(file)) {
     if (preload && packsInFlight > 0) return null;
     packsInFlight++;

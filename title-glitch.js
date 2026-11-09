@@ -75,8 +75,16 @@ export function createTitleGlitch(section) {
     const offs = [0, 1, 2].map(() => { let o = (Math.floor(rnd(-range, range)) * W + Math.floor(rnd(-range, range))) * 4; o %= len; if (o < 0) o += len; return o; });
     for (let c = 0; c < 3; c++) { const o = offs[c]; if (!o) continue; for (let i = c; i < len; i += 4) { let j = i + o; if (j >= len) j -= len; work[i] = base[j]; } }
   }
+  // A sheet opened over the title (記録, 設定, コード入力, ゆきの物語, the afterword) hides the tearing: the loop stops until it closes.
+  const coverSel = '.panel:not([hidden]), #mif:not([hidden]), #column:not([hidden]), #room-wait:not([hidden])';
+  let parked = false;
+  function unpark() { if (parked && running && !document.hidden && !document.querySelector(coverSel)) { parked = false; raf = requestAnimationFrame(frame); } }
+  { const mo = new MutationObserver(unpark); let seen = 0;
+    const watch = () => { const els = [...document.querySelectorAll('.panel, #mif, #column, #room-wait')]; if (els.length === seen) return; seen = els.length; for (const el of els) mo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); };
+    watch(); setInterval(() => { watch(); unpark(); }, 1000); }
   function frame(now) {
     if (!running) return;
+    if (document.querySelector(coverSel)) { parked = true; return; }
     raf = requestAnimationFrame(frame);
     if (!base) return;
     const worn = section.dataset.replay === '1' ? 1.5 : 1; // after an ending the title is more broken
@@ -99,7 +107,7 @@ export function createTitleGlitch(section) {
   }
   function start() {
     if (section.dataset.replay !== '1') { if (running) stop(); return; } // first visit: no tearing; it comes with the story (after an ending)
-    if (running) return; running = true; canvas.hidden = false;
+    if (running) return; running = true; parked = false; canvas.hidden = false;
     size(); nextBurst = performance.now() + 2500;
     clearInterval(repaintTimer); repaintTimer = setInterval(paint, 20000); // the clock in the eyebrow moves
     raf = requestAnimationFrame(frame);
@@ -108,7 +116,7 @@ export function createTitleGlitch(section) {
 
   if (document.fonts) { document.fonts.load('40px "Kowai Mincho"').then(paint).catch(() => {}); document.fonts.ready.then(paint); }
   addEventListener('resize', () => running && size());
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); } else if (running) raf = requestAnimationFrame(frame); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelAnimationFrame(raf); } else if (running) { parked = false; cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); } });
   new MutationObserver(() => (section.hidden ? stop() : start())).observe(section, { attributes: true, attributeFilter: ['hidden'] });
   canvas.burst = ms => { burst = true; burstUntil = performance.now() + (ms || 600); }; // for tests
   return { start, stop, repaint: paint, burst: ms => canvas.burst(ms) };

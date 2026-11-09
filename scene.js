@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createRenderer } from './renderer.js';
 import { prop } from './props.js';
-import { makeLighter, makeKey, makeRuler, makeMagnet, makeShard, makeCard, makeWaterBottle } from './items-models.js';
+import { makeLighter, makeKey, makeRuler, makeMagnet, makeShard, makeCard, makeWaterBottle, systemFonts } from './items-models.js';
 
 const V = values => new THREE.Vector3(...values);
 export const material = (color, options = {}) => new THREE.MeshStandardMaterial({ color, roughness: .88, ...options });
@@ -15,7 +15,7 @@ const readCache = [];
 export function canvasTexture(width, height, paint, readScale = 1) {
   const draw = scale => {
     const c = document.createElement('canvas'); c.width = Math.round(width * scale); c.height = Math.round(height * scale);
-    const ctx = c.getContext('2d'); if (scale !== 1) ctx.scale(scale, scale); paint(ctx, width, height); return c;
+    const ctx = systemFonts(c.getContext('2d')); if (scale !== 1) ctx.scale(scale, scale); paint(ctx, width, height); return c; // system fonts: see items-models.js
   };
   const canvas = draw(1);
   let src = canvas;
@@ -66,6 +66,19 @@ export function label(lines, background = '#bfbba6', ink = '#303832', width = 76
   });
 }
 
+// Line breaking for the painted papers: the same lines as adding one character at a time and starting a new line with the
+// character that overflows, but the break is found by halving, so a line costs a few measurements instead of one per character
+// (each of those measured the whole line so far: on a phone this was most of the time spent building the room).
+function breakLines(text, tooWide) {
+  const chars = [...text], out = []; let s = 0, forced = false;
+  for (;;) {
+    let lo = s + (forced ? 1 : 0), hi = chars.length; // the first index whose character makes the line too wide (chars.length: none)
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (tooWide(chars.slice(s, mid + 1).join(''))) hi = mid; else lo = mid + 1; }
+    if (lo >= chars.length) { out.push(chars.slice(s).join('')); return out; }
+    out.push(chars.slice(s, lo).join('')); s = lo; forced = true;
+  }
+}
+
 // A printed sheet: title, meta line, wrapped paragraphs, optional stamp and footer.
 const MINCHO = '"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif';
 const HAND = '"Yosugara","Klee","Klee One","Zen Kurenaido","Yu Kyokasho",cursive'; // 夜すがら手書きフォント（て！）。収録外の漢字は次のフォントで補う
@@ -105,7 +118,7 @@ export function paper({ kind = 'notice', band = '#b32b2b', hand = false, handCel
     ctx.fillStyle = ink; ctx.textBaseline = 'alphabetic';
     let y = margin + titleSize * .4;
     const sans = '"Noto Sans JP", sans-serif';
-    const wrapLines = (text, size, width) => { ctx.font = `${size}px ${sans}`; const out = []; let line = ''; for (const ch of text) { if (ctx.measureText(line + ch).width > width) { out.push(line); line = ch; } else line += ch; } out.push(line); return out; };
+    const wrapLines = (text, size, width) => { ctx.font = `${size}px ${sans}`; return breakLines(text, t => ctx.measureText(t).width > width); };
     const drawStamp = (cx, cy, radius) => {
       ctx.save(); ctx.translate(cx, cy); ctx.rotate(-.12);
       ctx.strokeStyle = 'rgba(170,40,40,.75)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.stroke();
@@ -224,11 +237,8 @@ export function paper({ kind = 'notice', band = '#b32b2b', hand = false, handCel
     const lineHeight = bodySize * (hand ? 1.8 : 1.65);
     for (const paragraph of body) {
       if (paragraph === '') { y += lineHeight * .6; continue; }
-      let line = '';
-      for (const ch of paragraph) {
-        if (ctx.measureText(line + ch).width > maxWidth) { ctx.fillText(line, margin, y); y += lineHeight; line = ch; }
-        else line += ch;
-      }
+      const lines = breakLines(paragraph, t => ctx.measureText(t).width > maxWidth); const line = lines.pop();
+      for (const l of lines) { ctx.fillText(l, margin, y); y += lineHeight; }
       ctx.fillText(line, margin, y); y += lineHeight * 1.25;
       if (y > h - margin * 2) break;
     }
@@ -674,6 +684,9 @@ export function planTexture() {
 }
 
 export function createRoom(host, markerLayer, onInteract, onLook) {
+  systemFonts.on = true; try { return buildRoomScene(host, markerLayer, onInteract, onLook); } finally { systemFonts.on = false; }
+}
+function buildRoomScene(host, markerLayer, onInteract, onLook) {
   const renderer = createRenderer(host);
   // Shadows are re-rendered only when something that casts them moves (doors, drawer, picked-up items), not every frame.
   if (renderer.shadowMap) renderer.shadowMap.autoUpdate = false;
@@ -2643,12 +2656,13 @@ export function createRoom(host, markerLayer, onInteract, onLook) {
   // The canvas fills the screen down to the bottom edge, under the talk. The picture is framed for the part above the talk
   // (CSS --frame on the host: the height kept for the talk), and the rest is the same view carried on downward (setViewOffset).
   // Markers stay inside the framed part.
-  let frameInset = 0, frameAspect = 1, frameFov = 54;
+  let frameInset = 0, frameAspect = 1, frameFov = 54, sizedW = -1, sizedH = -1;
   function resize() {
     width = host.clientWidth;
     height = host.clientHeight;
     frameInset = Math.max(0, Math.min(height * .5, parseFloat(getComputedStyle(host).getPropertyValue('--frame')) || 0));
-    renderer.setSize(width, height, false);
+    // Resizing the canvas reallocates the drawing buffer (multisampled, so costly): only when the size really changed.
+    if (width !== sizedW || height !== sizedH) { sizedW = width; sizedH = height; renderer.setSize(width, height, false); }
     applyFov();
     dirty = true;
   }
@@ -2851,14 +2865,24 @@ export function createRoom(host, markerLayer, onInteract, onLook) {
 
   let previousTime = 0;
   let birdClock = 0;
-  // Full-screen layers (phone, bag, a paper, the afterword, the ending) cover the room: while one is open nothing is drawn or
-  // animated (dust, the bird's loop); when it closes the room is redrawn once and carries on from where it stopped.
-  const covers = ['phone', 'bag', 'paper', 'column', 'ending'].map(id => document.getElementById(id)).filter(Boolean);
-  let covered = false;
+  // Full-screen layers (phone, bag, a paper, the afterword, the ending; the title, the prologue and the panels over the title)
+  // cover the room: while one is open nothing is drawn or animated (dust, the bird's loop), and the loop itself stops (no
+  // requestAnimationFrame at all); when it closes the room is redrawn once and carries on from where it stopped.
+  const coverIds = ['phone', 'bag', 'paper', 'column', 'ending', 'title', 'prologue', 'room-wait', 'record', 'settings', 'class', 'mif'];
+  const coverEls = () => coverIds.map(id => document.getElementById(id)).filter(Boolean);
+  let covers = coverEls();
+  const isCovered = () => covers.some(el => !el.hidden);
+  let covered = false, sleeping = false;
+  function wake() {
+    if (!sleeping || isCovered()) return;
+    sleeping = false; requestAnimationFrame(frame);
+  }
+  { const mo = new MutationObserver(wake); const watch = () => { covers = coverEls(); for (const el of covers) mo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); };
+    watch(); setInterval(() => { if (covers.length < coverIds.length) watch(); wake(); }, 1000); } // #mif is made later by if.js
   function frame(time) {
+    if (isCovered()) { covered = true; sleeping = true; return; }
     requestAnimationFrame(frame);
     if (document.hidden || time - previousTime < 28) return;
-    if (covers.some(el => !el.hidden)) { covered = true; previousTime = time; return; }
     if (covered) { covered = false; dirty = true; previousTime = time - 33; }
     const dt = Math.min((time - previousTime) / 1000, .1);
     previousTime = time;
@@ -3018,6 +3042,21 @@ export function createRoom(host, markerLayer, onInteract, onLook) {
       });
     },
     begin(on) { enabled = true; this.setLamp(on); dirty = true; },
+    // Before the first frame: compile every material's shaders (in parallel where the browser allows it) and send the textures to
+    // the GPU a few at a time, giving the page a breath between them, so entering the room does not freeze on its first frame.
+    async warm() {
+      if (!renderer.isWebGLRenderer) return;
+      scene.updateMatrixWorld(true); camera.updateMatrixWorld(true);
+      if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+      const textures = new Set();
+      scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k of ['map', 'bumpMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'emissiveMap', 'alphaMap', 'aoMap', 'lightMap']) if (m[k] && m[k].isTexture) textures.add(m[k]); });
+      let t0 = performance.now();
+      for (const t of textures) {
+        renderer.initTexture(t);
+        if (performance.now() - t0 > 24) { await new Promise(r => setTimeout(r, 0)); t0 = performance.now(); }
+      }
+      dirty = true;
+    },
     // The locker door swings open on its left hinge (95°, with a stiff start and a slow end), or shuts again.
     openLocker(done) { const from = lockerHinge.rotation.y; lockerOpen = true; animate(1100, t => { const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; lockerHinge.rotation.y = from + (-1.66 - from) * e; }, () => { shadowsDirty = true; done && done(); }); },
     closeLocker(done) { const from = lockerHinge.rotation.y; lockerOpen = false; animate(900, t => { lockerHinge.rotation.y = from * (1 - t); }, () => { shadowsDirty = true; done && done(); }); },

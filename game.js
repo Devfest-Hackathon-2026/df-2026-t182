@@ -1,5 +1,3 @@
-import { createRoom } from './scene.js';
-import { createInventory, itemThumb } from './items3d.js';
 import * as S from './story.js';
 import * as A from './arg.js';
 import * as Snd from './sound.js';
@@ -12,8 +10,6 @@ import * as CL from './class-local.js';
 import { Q1, nightOf } from './class-data.js';
 
 const $ = selector => document.querySelector(selector);
-// The handwriting on the papers is painted onto canvases at startup, so the font has to be in before the room is built.
-try { await Promise.race([document.fonts.load('20px "Yosugara"'), new Promise(r => setTimeout(r, 2500))]); } catch {}
 const KEY = 'mi-trust-arg-v1';
 // Optional class form for the afterword answers (Google Forms, prefilled GET). Empty: no button.
 const ANSWER_FORM_URL = '';
@@ -46,10 +42,38 @@ let transitioning = false;
 let introComplete = state.lamp;
 let lastInput = Date.now();
 let lastFind = Date.now(); // the last time something new was examined or picked up (markers stay unlit until a while after it)
-const room = createRoom($('#world'), $('#markers'), interact, () => { $('#gesture').hidden = true; if (matchMedia('(hover: none)').matches) openLog(false); });
-room.enable?.(['phone']);
-const tray = createInventory($('#tray')); tray.names = S.itemNames;
-if (location.hostname === '127.0.0.1') window.__room = room; // local preview only
+// ───────── the 3D room: loaded and built only when the night begins ─────────
+// three.js, the room and the bag's stage are not needed on the title (or for 記録・設定・コード入力), so they are fetched after the title
+// is usable and built when the room is first entered (enterRoom shows a short note while that happens). Building the room paints
+// ~95 textures and compiles its shaders, which takes seconds on a phone: none of it may stand between the player and the title.
+let sceneMod = null, itemsMod = null, roomObj = null, roomMods = null, roomPrep = null, roomReady = false;
+function loadRoomModules() {
+  return roomMods ||= Promise.all([import('./scene.js'), import('./items3d.js')]).then(([sc, it]) => { sceneMod = sc; itemsMod = it; }).catch(err => { roomMods = null; throw err; });
+}
+function buildRoom() {
+  if (roomObj) return roomObj;
+  if (!sceneMod) throw new Error('room module not loaded yet');
+  roomObj = sceneMod.createRoom($('#world'), $('#markers'), interact, () => { $('#gesture').hidden = true; if (matchMedia('(hover: none)').matches) openLog(false); });
+  roomObj.enable?.(['phone']);
+  return roomObj;
+}
+// Everything in the night talks to `room` as before; the first touch builds it (normally prepareRoom has already done so).
+const room = new Proxy({}, { get: (_, k) => buildRoom()[k], set: (_, k, v) => { buildRoom()[k] = v; return true; }, has: (_, k) => k in buildRoom() });
+// Fonts for the handwriting on the papers (painted into the room's textures), the modules, the build, then the shaders compiled
+// and the textures sent to the GPU a few at a time, so the first frame of the room does not stall.
+function prepareRoom() {
+  return roomPrep ||= (async () => {
+    await loadRoomModules();
+    try { await Promise.race([document.fonts.load('20px "Yosugara"'), new Promise(r => setTimeout(r, 2500))]); } catch {}
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); // the waiting note is on screen before the long build
+    buildRoom();
+    try { await roomObj.warm?.(); } catch (err) { console.warn(err); }
+    roomReady = true;
+  })().catch(err => { roomPrep = null; throw err; });
+}
+let trayObj = null;
+const tray = () => trayObj ||= Object.assign(itemsMod.createInventory($('#tray')), { names: S.itemNames });
+if (location.hostname === '127.0.0.1') Object.defineProperty(window, '__room', { configurable: true, get: () => roomObj }); // local preview only
 if (location.hostname === '127.0.0.1') window.__dev = { interact: id => interact(id), finish: id => finish(id), state: () => state, tap: id => tapItem(id), arrive: () => arriveLobby(), bag: (mode, target) => openBag(mode, target) }; // local preview only
 
 const T = text => String(text)
@@ -422,6 +446,7 @@ function proNext() {
     $('#pro-status-signal').textContent = '圏外';
     $('#prologue').classList.add('cut');
     setTimeout(() => { A.buzz([40, 30, 40]); Snd.powerDown(); $('#pro-log').replaceChildren(); proBubble('narr', 'ミーを再起動しています……'); }, 1500);
+    setTimeout(() => prepareRoom().catch(() => {}), 1700); // the room is built while Mi 「restarts」 (enterRoom waits for it if it is not done)
     setTimeout(() => { $('#pro-log').replaceChildren(); $('#prologue').classList.add('black'); Snd.setScene('dark'); }, 2700);
     setTimeout(() => {
       $('#prologue').hidden = true; $('#prologue').classList.remove('cut', 'black');
@@ -477,7 +502,17 @@ function start() {
   enterRoom();
 }
 function preloadRaw(list) { for (const raw of list) { if (typeof raw !== 'string') continue; const key = voiceHit(raw); if (key) Snd.preloadSay(`./assets/voice/${key}.mp3`); } }
+// The room is built on the first way in (つづきから, the end of the prologue, a reload mid-night). Until it is ready a quiet note
+// covers the screen; nothing else can be pressed meanwhile, so the night never starts twice.
+let roomWaiting = false;
 function enterRoom() {
+  if (roomReady) { enterRoomNow(); return; }
+  if (roomWaiting) return;
+  roomWaiting = true; const note = $('#room-wait'); const shown = setTimeout(() => { note.hidden = false; }, 120); // a fast device never sees it
+  prepareRoom().then(() => { clearTimeout(shown); note.hidden = true; roomWaiting = false; enterRoomNow(); },
+    err => { clearTimeout(shown); note.hidden = true; roomWaiting = false; console.warn(err); bootFailed(); });
+}
+function enterRoomNow() {
   if (!state.roomAt) { state.roomAt = Date.now(); save(); }
   setTimeout(() => preloadRaw(Object.values(advice)), 1500);
   $('#voice').hidden = false; $('#hud').hidden = false; soundTip();
@@ -929,19 +964,19 @@ function openBag(mode = 'view', target = null, pick = null) {
   const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
   const guide = first && remember('bagLook') ? (fine ? 'ドラッグで回せます。ホイールで拡大できます。' : 'スワイプで回せます。ピンチで拡大できます。') : ''; // how to handle things: told once
   requestAnimationFrame(() => {
-    tray.show(state.items, tapItem, { names: S.itemNames, fresh, onPair: pairByDrag, empty: 'まだ何も持っていない。', guide });
+    tray().show(state.items, tapItem, { names: S.itemNames, fresh, onPair: pairByDrag, empty: 'まだ何も持っていない。', guide });
     if (first) selectBagItem(first);
-    if (fine) tray.focusFirst();
+    if (fine) tray().focusFirst();
   });
 }
-function closeBag() { $('#bag').hidden = true; bagPairing = false; tray.hide(); }
+function closeBag() { $('#bag').hidden = true; bagPairing = false; trayObj?.hide(); focusBack($('#bag-btn')); }
 // The story's notices wait while the bag, a paper or a close look is open, and land after it closes (arg.js notify).
 A.holdNotices(() => !$('#bag').hidden || !$('#paper').hidden || !!inspecting);
 // Seen once on the stage: its dot (and, when nothing else is new, the one on the bag button) goes.
-function markBagSeen(id) { if ((state.bagSeen || []).includes(id)) return; state.bagSeen = [...(state.bagSeen || []), id]; save(); bagBadge(); tray.markSeen(id); }
+function markBagSeen(id) { if ((state.bagSeen || []).includes(id)) return; state.bagSeen = [...(state.bagSeen || []), id]; save(); bagBadge(); trayObj?.markSeen(id); }
 // PC: one picture dragged onto another. The same as 組み合わせる and a second pick.
 function pairByDrag(a, b) { lastInput = Date.now(); showPair(a, b); setTimeout(() => combinePair(a, b), 220); }
-function showPair(a, b) { bagSelected = a; bagPairing = false; bagPairShown = true; tray.setPairing(false); tray.setSelected([a, b]); markBagSeen(b); setBagCaption(S.itemNames[a] + '　＋　' + S.itemNames[b], ''); $('#bag-actions').replaceChildren(); }
+function showPair(a, b) { bagSelected = a; bagPairing = false; bagPairShown = true; tray().setPairing(false); tray().setSelected([a, b]); markBagSeen(b); setBagCaption(S.itemNames[a] + '　＋　' + S.itemNames[b], ''); $('#bag-actions').replaceChildren(); }
 function setBagCaption(name, detail = '') { $('#bag-name').textContent = name; $('#bag-detail').textContent = T(detail); }
 // kind: 'primary' (the next use, at most one: a real button), or 'sub' / 'mi' (組み合わせる・やめる・ミーに見せる: quiet text actions under it).
 function bagAction(text, fn, kind = 'sub') { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.onclick = fn; b.className = kind + ' no-phrase'; $('#bag-actions').append(b); return b; }
@@ -952,7 +987,7 @@ function tapItem(id) {
 }
 function selectBagItem(id, note = '') {
   bagSelected = id; bagLast = id; bagPairing = false; bagPairShown = false;
-  tray.setPairing(false); tray.setSelected([id]); markBagSeen(id);
+  tray().setPairing(false); tray().setSelected([id]); markBagSeen(id);
   setBagCaption(S.itemNames[id], note || S.itemDetails[id]);
   $('#bag-actions').replaceChildren();
   const next = nextUse(id);
@@ -968,7 +1003,7 @@ function nextUse(id) {
   return null;
 }
 function startPairing(id) {
-  lastInput = Date.now(); bagPairing = true; tray.setPairing(true);
+  lastInput = Date.now(); bagPairing = true; tray().setPairing(true);
   setBagCaption(S.itemNames[id], '組み合わせる物を一覧から選んでください。');
   $('#bag-actions').replaceChildren(); bagAction('やめる', () => selectBagItem(id));
 }
@@ -993,7 +1028,7 @@ function combinePair(a, b) {
   state.items = state.items.filter(x => !(([a, b].includes(x)) && !S.keepOnCombine.has(x)));
   takeItem(result);
   // Stay in the bag: show the new thing on the stage, with its description. The room's lines wait underneath.
-  bagSelected = null; bagPairing = false; $('#bag-actions').replaceChildren(); tray.show(state.items, tapItem); setTimeout(() => selectBagItem(result), 80);
+  bagSelected = null; bagPairing = false; $('#bag-actions').replaceChildren(); tray().show(state.items, tapItem); setTimeout(() => selectBagItem(result), 80);
   if (result === 'magnetic-ruler') play([['', '定規の先にマグネットをつけた。これなら狭い隙間に差し込めそう。']], [['机の下を探る', () => { if (state.zone === 'room') interact('lost-key'); else leave(); }], ['戻る', leave]]);
   else if (result === 'plate') { remember('plate'); play([['', '三つの破片がつながった。背面の線も端から端まで一本につながっている。\n' + (has('spare') ? '写しの部分は刻印がかすれて、ところどころしか読めない。「映像停…　…気導入 → …」' : '刻印には「映像停止 → 外気導入 → 解錠」とある。')], '変わった順番だね。標準の盤なら解錠からでいいはずだけど。'], [['持ち物を見る', () => openBag()], ['戻る', leave]]); }
   else if (result === 'card-revealed') {
@@ -1276,7 +1311,14 @@ function openPhone(app = 'home') {
   closeBag(); if ($('#phone').hidden) { phoneHist = []; phoneApp = null; A.pauseBattery(true); } // reopened: ‹ never leads to whatever was open last time
   $('#phone').hidden = false; document.body.classList.add('phone-open'); updateStatus(); renderPhone(app);
 }
-function closePhone() { $('#phone').hidden = true; document.body.classList.remove('phone-open'); A.pauseBattery(false); const f = $('#ph-body iframe'); if (f) { f.src = 'about:blank'; f.remove(); } }
+function closePhone() { $('#phone').hidden = true; document.body.classList.remove('phone-open'); A.pauseBattery(false); const f = $('#ph-body iframe'); if (f) { f.src = 'about:blank'; f.remove(); } focusBack($('#phone-btn')); }
+// A layer closed with the focus inside it (×, Esc): the focus goes back to the button that opens it, not to the top of the page,
+// so a keyboard player carries on from where they were. Mouse/keyboard screens only; on a phone nothing is focused.
+function focusBack(btn) {
+  const a = document.activeElement;
+  if (!matchMedia('(hover:hover)').matches || !btn || btn.closest('[hidden]')) return;
+  if (!a || a === document.body || a.closest('[hidden]')) btn.focus({ preventScroll: true });
+}
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = T(text); return e; }
 // Settings-style list (Mi app): section title → white group → rows. Rows with `go` are tappable; others only show a state.
 // Everyday chats: messages before tonight's signal loss, plus what arrives once the signal is back.
@@ -1845,7 +1887,7 @@ function idleLine() {
   return pool[idleIndex++ % pool.length].replace('{weekday}', A.gameNow().getHours() < 5 ? '火曜' : '火曜日');
 }
 setInterval(() => {
-  if (!state.started || !state.prologueDone || state.ending || document.hidden || transitioning) return;
+  if (!state.started || !state.prologueDone || state.ending || document.hidden || transitioning || !roomReady || !$('#title').hidden) return;
   const idle = Date.now() - lastInput;
   const bat = A.battery();
   if (bat !== null && bat <= 10 && remember('bat10')) notifyMi(state.proxyRevoked ? '省電力のため、案内だけにするね。' : '省電力のため、代理返信だけ残すね。あとは私がやるから。');
@@ -1861,6 +1903,7 @@ setInterval(() => {
 addEventListener('pointerdown', () => { lastInput = Date.now(); }, true);
 // Nothing new found for a while: the things not yet examined show faintly where they are (the hint before the hints).
 setInterval(() => {
+  if (!roomObj) return; // on the title before the first night: no room to light
   const looking = state.started && $('#title').hidden && !state.ending && state.lamp && !state.lightSaved && !inspecting && room.zone !== 'storage' && $('#phone').hidden && $('#bag').hidden && $('#paper').hidden;
   room.setReveal?.(looking && Date.now() - lastFind > 55000 ? 1 : 0);
 }, 4000);
@@ -2641,7 +2684,7 @@ function suggest() { $('#say-input').placeholder = ASK_PLACEHOLDER; }
 // ───────── wiring ─────────
 // Title menu: はじめから (a new night; over a saved one, asks once) / つづきから (only with a save) / 記録 (always; before the first ending it shows only what can be shown). 設定は右上の歯車。
 function titleMenu() {
-  $('#start').textContent = 'はじめる'; $('#continue').hidden = !state.started;
+  $('#start').textContent = 'はじめから'; $('#continue').hidden = !state.started;
   $('#title-record').hidden = false;
   $('#title-confirm').hidden = true; $('.title-menu').hidden = false;
 }
@@ -2652,10 +2695,10 @@ function titleAsk(text, yesLabel, yes) { $('#tc-text').textContent = text; $('#t
 function startPersonal() { try { localStorage.removeItem('mi-if-consent:run:v1'); } catch {} wipeNight(); titleMenu(); start(); }
 $('#start').onclick = () => {
   if (!state.started) { if (state.classId) { state.classId = ''; state.classPid = ''; state.classTitle = ''; save(); } start(); return; }
-  titleAsk(state.classId ? `新しくはじめると、授業「${state.classTitle}」で遊んでいる続きは消えます。` : '新しくはじめると、いまの続きは消えます。', '続きを消してはじめる', startPersonal);
+  titleAsk(state.classId ? `はじめから遊ぶと、「${state.classTitle}」で遊んでいる続きは消えます。` : 'はじめから遊ぶと、いまの続きは消えます。', '続きを消してはじめから遊ぶ', startPersonal);
 };
 // つづきから：授業の夜なら、再開する前に授業名を示す
-$('#continue').onclick = () => { if (!state.classId) { start(); return; } titleAsk(`授業「${state.classTitle}」のプレイを再開します。`, '再開する', () => { titleMenu(); start(); }); };
+$('#continue').onclick = () => { if (!state.classId) { start(); return; } titleAsk(`「${state.classTitle}」のプレイを再開します。`, '再開する', () => { titleMenu(); start(); }); };
 $('#title-record').onclick = () => { window.MiIF?.paintRecord?.('top'); openPanel('#record'); };
 $('#tc-yes').onclick = () => { const go = tcYes; tcYes = null; go?.(); };
 $('#tc-no').onclick = () => { titleMenu(); $('#start').focus({ preventScroll: true }); };
@@ -2808,7 +2851,7 @@ $('#title-sound').onclick = toggleSound;
 })();
 A.onNotify(app => Snd.pop(app));
 addEventListener('keydown', event => {
-  if (!$('#phone').hidden || !$('#bag').hidden || !state.started || state.ending || event.target.tagName === 'INPUT') return;
+  if (!$('#phone').hidden || !$('#bag').hidden || !state.started || state.ending || event.target.tagName === 'INPUT' || !$('#title').hidden || !roomReady) return;
   if (inspecting === 'keypad') {
     if (/^[0-9]$/.test(event.key)) keypad(event.key);
     else if (event.key === 'Backspace') { event.preventDefault(); keypad('消'); }
@@ -2831,6 +2874,13 @@ const openClass = (view, arg) => import('./class.js').then(c => c.open(view, arg
 $('#title-code').onclick = () => openClass('code');
 { const c = new URLSearchParams(location.search).get('c'); if (c) openClass('join', c); } // QR・専用URL（/?c=コード）はコード入力を飛ばす
 
+// Loading failed (a module that would not load, or the room that could not be built): the note on the title, and a button that
+// fetches the page's files again before reloading (index.html).
+function bootFailed() {
+  for (const p of document.querySelectorAll('.panel')) p.hidden = true;
+  if ($('#title').hidden) { document.body.classList.add('on-title'); $('#title').hidden = false; }
+  window.__miBootFail?.();
+}
 // Title screen remembers you.
 (function title() {
   document.body.classList.add('on-title');
@@ -2845,4 +2895,10 @@ $('#title-code').onclick = () => openClass('code');
   A.readBattery().then(updateStatus);
   A.consoleWhisper(state.name);
   updateStatus();
+  // The title works from here. index.html stops its 「読み込みに失敗しました」 watch and hands over a press made before this moment.
+  window.__miBoot?.(resume);
+  // three.js and the room's code are fetched while the title is read (not built: that waits for the night). A failure here is the
+  // stale-file case (a new page with old modules): say so on the title, as for a failed start.
+  const fetchRoom = () => loadRoomModules().catch(err => { console.warn(err); bootFailed(); });
+  if (!resume) { if ('requestIdleCallback' in window) requestIdleCallback(fetchRoom, { timeout: 2500 }); else setTimeout(fetchRoom, 1200); }
 })();

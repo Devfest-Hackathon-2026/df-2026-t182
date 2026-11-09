@@ -1,0 +1,8 @@
+Noto Sans JP 2.004 (Regular / Bold, static TTF from Google Fonts), SIL Open Font License 1.1 (OFL.txt).
+Used only by teach/ when a PDF is exported (pdf-lib embeds a further subset of the glyphs actually used).
+Subset made with fontTools 4.60 (pyftsubset): every character encodable in CP932 (JIS X 0208 + NEC/IBM extensions),
+Latin-1/Latin Extended-A/B, general punctuation, arrows, math operators, enclosed numerals, box drawing,
+geometric shapes, misc symbols, CJK symbols, kana, fullwidth forms. Features kept: kern, palt, vert, vrt2. Hinting removed.
+Each glyph is then padded to 4 bytes (fontTools glyf.padding = 4). Without this, @pdf-lib/fontkit 1.1.1 writes a
+short-format loca for the embedded subset and glyphs with odd lengths come out broken (characters go missing in the PDF).
+Characters outside this set are printed as 〓 in the PDF.

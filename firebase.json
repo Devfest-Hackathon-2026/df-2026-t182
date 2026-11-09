@@ -7,29 +7,38 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(js|css|html)",
+        "source": "**/",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|mjs|css|html|json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "assets/**/*.@(jpg|jpeg|png|webp|gif|svg|ico|woff|woff2|otf|ttf|mp3|m4a|ogg|wav|glb|gltf|bin|ktx2)",
         "headers": [
           {
             "key": "Cache-Control",
             "value": "public,max-age=3600"
-          }
-        ]
-      },
-      {
-        "source": "assets/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public,max-age=86400"
-          }
-        ]
-      },
-      {
-        "source": "assets/voice/manifest.json",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public,max-age=600"
           }
         ]
       }

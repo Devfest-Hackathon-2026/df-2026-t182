@@ -8,7 +8,7 @@ Artifact は1つの版に置けるファイル数に上限（511）があるた�
 
 使い方: python3 tools/voice_pack.py <出力先フォルダ>
 """
-import json, pathlib, sys
+import hashlib, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'assets' / 'voice'
@@ -22,7 +22,7 @@ def main(out):
         f = SRC / f'{key}.mp3'
         if f.exists():
             groups.setdefault(key[:2], []).append((key, f.read_bytes()))
-    files, index = [], {}
+    files, index, vers = [], {}, []
     for i, head in enumerate(sorted(groups)):
         name = f'pack-{head}.mp3'
         files.append(name)
@@ -31,7 +31,8 @@ def main(out):
             index[key] = [i, len(buf), len(data)]
             buf += data
         (out / name).write_bytes(bytes(buf))
-    man['packs'] = {'files': files, 'index': index}
+        vers.append(hashlib.sha1(bytes(buf)).hexdigest()[:10])  # 中身が変わると URL（?v=）も変わる。manifest と古いまとめファイルが混ざらない
+    man['packs'] = {'files': files, 'index': index, 'v': vers}
     (out / 'manifest.json').write_text(json.dumps(man, ensure_ascii=False, indent=1))
     sizes = [(n, (out / n).stat().st_size) for n in files]
     print(f'{len(index)} 文を {len(files)} ファイルにまとめました（最大 {max(s for _, s in sizes) / 1e6:.2f}MB、合計 {sum(s for _, s in sizes) / 1e6:.2f}MB）')
