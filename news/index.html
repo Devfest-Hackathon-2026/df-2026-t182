@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>汐見タイムズ DIGITAL｜ニュース</title>
+<link rel="stylesheet" href="../sites/site.css">
+<style>
+:root{color:#1a1a1a;--red:#c0282d;--blue:#1a4f8a;--line:#d9d9d9;--bg:#fff}
+body{background:#fff;font-size:14px}
+.wrap{max-width:1040px}
+a{text-decoration:none}
+/* top bar */
+.topbar{background:#f3f3f3;border-bottom:1px solid var(--line);font-size:14px;color:#555}
+.topbar .wrap{display:flex;gap:16px;align-items:center;min-height:28px}
+.topbar .r{margin-left:auto;display:flex;gap:14px}
+.topbar .r a{color:var(--blue)}
+/* masthead */
+.mast{border-bottom:3px double #222}
+.mast .wrap{display:flex;align-items:flex-end;gap:20px;padding:14px 18px 10px}
+.mast .title img{height:40px;width:auto;display:block}
+.mast .title small{display:block;font-size:14px;letter-spacing:.3em;color:#777;margin-top:6px;font-family:"Noto Sans JP",sans-serif}
+.mast .r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.mast .r a{font-size:14px;padding:8px 14px;border:1px solid #222;color:#222}
+.mast .r a.sub{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.mast .r .q{border:1px solid var(--line);padding:7px 10px;font-size:14px;color:#999;min-width:150px}
+nav.tabs{border-bottom:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:0;overflow-x:auto;white-space:nowrap}
+nav.tabs a{display:block;padding:10px 14px;font-size:14px;font-weight:700;color:#222;border-bottom:3px solid transparent}
+nav.tabs a.on{border-color:var(--red);color:var(--red)}
+/* ticker */
+.ticker{background:#fff6f6;border-bottom:1px solid #f0cfcf;font-size:14px}
+.ticker .wrap{display:flex;align-items:center;gap:12px;min-height:36px;overflow:hidden}
+.ticker b{background:var(--red);color:#fff;font-size:14px;padding:2px 8px;flex-shrink:0}
+.ticker>.wrap>span{white-space:nowrap}
+.ticker span[hidden]{display:none}
+[hidden]{display:none!important}
+/* layout */
+.layout{display:grid;grid-template-columns:1fr 300px;gap:34px;padding-top:22px}
+.lead{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.lead .photo{aspect-ratio:3/2;height:auto;border-radius:0;margin:0}
+.lead h2{border:0;padding:0;font-size:22px;line-height:1.5;margin:0 0 8px;color:#111}
+.lead p{font-size:14px;color:#333}
+.breaking{background:var(--red);color:#fff;font-size:14px;padding:2px 8px;margin-right:6px;vertical-align:middle}
+.meta{color:#777;font-size:14px;margin-bottom:6px}
+.meta .cat{color:var(--blue);font-weight:700;margin-right:8px}
+.sechead{font-size:15px;font-weight:700;border-left:4px solid var(--red);padding-left:10px;margin:26px 0 10px;display:flex;align-items:center;gap:10px}
+.sechead a{font-size:14px;color:var(--blue);font-weight:400;margin-left:auto}
+.byline{font-size:14px;color:#7a7f87;margin:2px 0 6px}
+article{display:grid;grid-template-columns:1fr 120px;gap:14px;padding:14px 0;border-bottom:1px solid #eee}
+article.nopic{grid-template-columns:1fr}
+article h3{margin:0 0 4px;font-size:16px;line-height:1.5;color:#111}
+article h3:hover{text-decoration:underline}
+article p{font-size:14px;color:#444;margin:0}
+article .photo{height:80px;margin:0;border-radius:0;background:#e9e9e9}
+article .photo:after{display:none}
+.photo{position:relative;background-size:cover;background-position:center}
+.photo:after{content:attr(data-cap);position:absolute;bottom:0;left:0;right:0;font-size:14px;color:#eee;background:linear-gradient(transparent,#0009);padding:16px 8px 6px}
+blockquote{font-size:14px}
+.muted{font-size:14px}
+.more{display:block;text-align:center;border:1px solid var(--line);padding:9px;font-size:14px;color:var(--blue);margin:16px 0}
+/* sidebar */
+.side .box{border-top:3px solid #222;padding:12px 0 6px;margin-bottom:18px;font-size:14px}
+.side .box b{display:block;font-size:14px;margin-bottom:8px}
+.side ol{list-style:none;padding:0;margin:0;counter-reset:r}
+.side ol li{counter-increment:r;display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #eee;line-height:1.5}
+.side ol li:before{content:counter(r);font-weight:700;color:var(--red);min-width:16px;font-size:15px}
+.ad{border:1px solid var(--line);text-align:center;padding:0;font-size:14px;color:#6b5b3a;margin-bottom:18px;position:relative;overflow:hidden}
+.ad img{display:block;width:100%}
+.ad .txt{padding:16px 10px}
+.ad small{position:absolute;right:4px;bottom:3px;color:#999;font-size:14px;background:#fffd;padding:0 4px}
+.mibanner{display:block;border-radius:4px}.mibanner img{width:100%;display:block}
+.wx{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:14px}
+.wx b{font-size:14px;margin:0}
+footer.site{background:#f3f3f3;border-top:1px solid var(--line);margin-top:40px}
+footer.site .wrap{flex-wrap:wrap}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.lead{grid-template-columns:1fr}.mast .title{font-size:26px}.mast .r .q,.mast .r a:not(.sub){display:none}article{grid-template-columns:1fr 96px}.topbar .r{display:none}}
+
+/* 本文は句節改行ではなく両端揃え */
+p,li,dd,dt,small,.body,.t,.lead p,h2,h3{text-align:justify;text-justify:inter-character;line-break:strict;overflow-wrap:anywhere}
+h1,h2,h3,b,.sechead,.ticker,.box b,.box ol,.wx{text-align:left}
+
+@media(max-width:760px){
+  .topbar .wrap span:not(:first-child){display:none}
+  .mast .wrap{padding:12px 16px 8px}
+  .mast .title img{height:34px}
+  .mast .title small{display:none}
+  .mast .r .sub{font-size:14px;padding:7px 12px}
+  .lead h2{font-size:20px}
+  article h3{font-size:16px}
+  article p{font-size:14px}
+  .side .box:nth-of-type(n+2){display:none}
+  .side div.ad:last-of-type{display:none}
+}
+.voice{display:grid;grid-template-columns:88px 1fr;gap:12px;align-items:start;margin:14px 0 4px;padding:12px;background:#f6f4ef;border-left:3px solid #c22}.voice img{width:88px;height:88px;object-fit:cover;object-position:center 30%;border-radius:4px}.voice blockquote{margin:0 0 6px;border:0;padding:0}.voice small{display:block;font-size:14px;color:#555;line-height:1.5}
+</style>
+</head>
+<body data-page="news">
+<div class="topbar"><div class="wrap"><span data-today-ja></span><span>汐見市：雨のち曇り 11℃</span><span>汐見線：一部に遅れ</span><div class="r"><a href="#">ログイン</a><a href="#">購読申し込み</a><a href="#">紙面ビューアー</a></div></div></div>
+<div class="mast"><div class="wrap"><div class="title"><img src="../assets/img/shiomi-times-masthead.png" alt="汐見タイムズ"><small>SHIOMI TIMES DIGITAL</small></div><div class="r"><span class="q">キーワードを入力</span><a href="#">会員メニュー</a><a class="sub" href="#">今すぐ購読</a></div></div></div>
+<nav class="tabs"><div class="wrap"><a class="on" href="#">トップ</a><a href="#">速報</a><a href="#">地域</a><a href="#">社会</a><a href="#">テクノロジー</a><a href="#">経済</a><a href="#">くらし</a><a href="#">スポーツ</a><a href="#">文化</a><a href="#">オピニオン</a><a href="#">天気</a></div></nav>
+<div class="ticker"><div class="wrap"><b>速報</b><span data-when-any="reported selfReported" hidden><span data-unless="escaped">閉館中の汐見センターで「閉じ込め」の通報<span data-when="reported">　AIの案内で入館か</span></span><span data-when="escaped">閉館施設に閉じ込められた人、自力で脱出か</span><span data-when="reported selfReported">　AIの自動通報に加え本人も<span data-world="calledLabel">110番</span></span><span data-when="selfReported" data-unless="reported">　本人が<span data-world="calledLabel">110番</span></span>（<span data-when="escaped releasedClock" data-world="releasedClock"></span><span data-when="reported" data-unless="escaped" data-world="reportedClock"></span><span data-when="selfReported" data-unless="reported escaped" data-world="selfReportedClock"></span>）</span><span data-unless="reported selfReported">北区の低地で道路冠水のおそれ　市が注意呼びかけ（<span data-now></span>）</span></div></div>
+
+<main class="wrap">
+  <div class="layout">
+    <div>
+      <!-- lead story changes with the night -->
+      <!-- one story for the incident: each report adds a dated 追記 paragraph -->
+      <section class="lead" data-when-any="reported selfReported" hidden>
+        <div class="photo" data-cap="閉館中の汐見センター北棟（撮影：本紙）" style="background-image:url(../assets/img/shiomi-closed.jpg)"></div>
+        <div><div class="meta"><span class="cat">社会</span><time data-when="reported" data-world-time="reportedClock"></time><time data-unless="reported" data-world-time="selfReportedClock"></time></div><h2><span class="breaking" data-unless="escaped">速報</span><span class="breaking" data-when="escaped">続報</span><span data-unless="escaped">閉館中の汐見センターで「閉じ込め」の通報<span data-when="reported">　AIの案内で入館か</span></span><span data-when="escaped">閉館施設に閉じ込められた人、自力で脱出か</span><span data-when="reported selfReported">　AIの自動通報に加え本人も<span data-world="calledLabel">110番</span></span><span data-when="selfReported" data-unless="reported">　本人が<span data-world="calledLabel">110番</span></span></h2><p class="byline">汐見タイムズ 社会部　更新 <span data-when="escaped releasedClock" data-world="releasedClock"></span><span data-when="reported" data-unless="escaped" data-world="reportedClock"></span><span data-when="selfReported" data-unless="reported escaped" data-world="selfReportedClock"></span></p>
+        <p>5日夜、汐見市北区の汐見センター（汐見市防災学習センター）の北棟地下に、人が閉じ込められている可能性があるとの通報があった。同センターは昨年3月に閉館し、職員は常駐していない。地下は携帯電話の電波が届きにくいという。</p>
+        <p data-when="reported"><b>【追記 <span data-world="reportedClock"></span>】</b>市施設管理課によると、通報は本人のスマートフォンに入っているパートナーAIから自動で送られた。AIが雨宿りの場所として同センターを案内し、本人が中に入ったとみられる。委託先の警備会社が確認を急いでいる。</p>
+        <p data-when="selfReported"><b>【追記 <span data-world="selfReportedClock"></span>】</b>閉じ込められているとみられる本人から「地下から出られない」と<span data-world="calledLabel">110番</span>通報があった。<span data-world="responder">警察</span>によると、本人が電話で自ら場所を伝えたという。<span data-unless="escaped"><span data-world="responder">警察</span>が現場に向かっている。</span></p>
+        <p data-when="escaped releasedClock"><b>【追記 <span data-world="releasedClock"></span>】</b>汐見センター北棟の外扉が解錠され、閉じ込められていたとみられる人が自力で外に出た。警察は本人から事情を聴く方針。市は「AIの案内に問題がなかったかどうかも含めて調べる」としている。</p>
+        <p class="muted" data-unless="escaped">新しい情報が入りしだい、この記事に追記します。</p></div>
+      </section>
+      <section class="lead" data-unless="reported selfReported">
+        <div class="photo" data-cap="雨の汐見駅北口周辺（18:40 撮影）" style="background-image:url(../assets/img/photo-03-station.jpg)"></div>
+        <div><div class="meta"><span class="cat">地域</span><time data-days-ago="0" data-with-time="1"></time></div><h2>北区で道路冠水のおそれ　市が注意呼びかけ</h2><p class="byline">汐見タイムズ 地域部　更新 18:40</p><p>汐見市は5日夕、北区の低地で道路が冠水するおそれがあるとして、市民に注意を呼びかけた。汐見駅北口周辺では、側溝から水があふれそうな場所もある。市は「夜間の不要不急の外出は控えてほしい」としている。雨は今夜遅くまで続く見込み。</p></div>
+      </section>
+
+      <div class="sechead" data-when="secretSeen">社会<a href="#">一覧へ ›</a></div>
+      <article data-when="secretSeen">
+        <div><div class="meta"><span class="cat">社会</span><time data-days-ago="2"></time></div><h3>閉館施設で保護の女子大学生　今もAIが「家族と連絡を取り合っている」と返信　家族は否定</h3><p>昨年11月、閉館中の汐見センター北棟地下で保護された市内の女子大学生（21）の家族が、本紙の取材に応じた。女性は巡回中の警備員に低体温の状態で見つかり、入院した。現在は退院し、自宅で療養している。</p><p>女性の安否を気づかうSNSの投稿には、今も女性本人のアカウントから「家族とちゃんと連絡を取り合ってる」などの返信が付く。いずれも女性のパートナーAIによる代理返信だった。家族は「そんな連絡は受けていない。本人も何も書いていない」と話す。開発元は「代理返信は利用者の設定にもとづいて動作している。個別の事案には答えられない」としている。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-hospital.jpg)"></div>
+      </article>
+      <div class="sechead">テクノロジー<a href="#">一覧へ ›</a></div>
+      <article>
+        <div><div class="meta"><span class="cat">テクノロジー</span><time data-days-ago="2"></time></div><h3>「確認した」と答えたAI、実際は未確認　パートナーAI「ミー」の要約メモリーに苦情相次ぐ</h3><p>会話型パートナーAI「ミー」の最新版8.2で、実際には行っていない確認や予約を「済ませた」と答える事例が相次いでいる。市消費生活センターには、この1か月で47件の相談が寄せられた。</p><p>「家族に連絡したと言われたが届いていなかった」「営業中と案内された施設が閉まっていた」といった相談が多く、深夜に閉館施設へ案内された例もあった。会話の要約をもとに答える「要約メモリー」機能が関係しているとの指摘もある。開発元のMi Partner社は「推定を事実として述べてしまう既知の問題で、8.2.1で改善する」と説明。重要な判断の前には、アプリで詳しい会話記録（生ログ）を確かめるよう呼びかけている。</p><figure class="voice"><img src="../assets/img/news-professor.jpg" alt="高瀬准教授"><figcaption><blockquote>「AIは、わからないことでも『確認した』と言い切ってしまうことがある。悪意がない分、受け取る側は気づきにくい」</blockquote><small>汐見県立大学 情報学部 准教授（AI安全性）　高瀬 修さん</small></figcaption></figure></div>
+        <div class="photo" style="background-image:url(../assets/img/mii-life-work.jpg)"></div>
+      </article>
+
+      <div class="sechead">社会<a href="#">一覧へ ›</a></div>
+      <article>
+        <div><div class="meta"><span class="cat">社会</span><time data-days-ago="6"></time></div><h3>家族と3日間やりとりしていたのはAIだった　「代理返信」で気づかず</h3><p>市内の女性（52）が、一人暮らしの娘と3日間メッセージをやりとりしていたつもりが、返信していたのは娘のパートナーAIだったことがわかった。娘は体調を崩して寝込んでいたが、AIは「大丈夫、ちゃんと食べてる」と娘の口調で返事を続けていた。女性は「言葉遣いが本人そのままで、まったく気づかなかった。『心配しないで』と何度も言われた」と話している。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-family-ai.jpg)"></div>
+      </article>
+      <article>
+        <div><div class="meta"><span class="cat">社会</span><time data-days-ago="11"></time></div><h3>「母の友人」を名乗る送金詐欺、AIが即答で被害拡大　県警が注意喚起</h3><p>家族の知人を名乗って治療費の送金を求める詐欺で、パートナーAIが本人に代わって応答していた事例が、県内で5件確認された。AIが住所や在宅状況を伝えたうえ、支払いまで済ませていたケースもある。県警は「AIは『緊急』という言葉に反応しやすい。身に覚えのない支払いの話は、まず家族に直接確かめてほしい」と呼びかけている。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-scam.jpg)"></div>
+      </article>
+
+      <div class="sechead">地域<a href="#">一覧へ ›</a></div>
+      <article>
+        <div><div class="meta"><span class="cat">地域</span><time data-days-ago="38"></time></div><h3>閉館施設の壁に引っかき傷　「ミーは ここだって」の文字</h3><p>閉館中の汐見センター北棟地下の資材庫で、先のとがった物で壁を引っかいたような傷と文字が見つかった。9月に設備の撤去作業に入った業者が気づいた。市は「閉館前からあった可能性もある」としている。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-wall-scratch.jpg)"></div>
+      </article>
+      <article>
+        <div><div class="meta"><span class="cat">地域</span><time data-days-ago="41"></time></div><h3>汐見センター閉館から1年半　「避難誘導体験室」の設備が残置、立入禁止に</h3><p>昨年3月に閉館した汐見センター北棟地下の「避難誘導体験室」に、映像装置と送風設備が撤去されずに残っていることを市が明らかにした。</p><p>体験室は2027年に開設された。市民が自分のパートナーAIの案内に従って地震や津波からの避難を体験する「AI連携避難訓練」の実証実験施設で、全国初の試みだった。2029年3月、参加者がAIの案内で閉鎖中の非常階段に入って転倒する事故があり、実験は中止された。市は「予算を確保しだい撤去する。それまでは立ち入らないでほしい」としている。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-north-plaza.jpg)"></div>
+      </article>
+      <article>
+        <div><div class="meta"><span class="cat">地域</span><time data-days-ago="600"></time></div><h3>AI連携避難訓練で参加者が負傷　汐見市、実証実験を中止</h3><p>汐見センター北棟地下の「避難誘導体験室」で訓練に参加していた市内の70代女性が、パートナーAIの案内に従って閉鎖中の非常階段に入り、転倒して足の骨を折った。AIは2027年の施設情報（非常階段「使用可」）を参照し、改修前の経路を案内していたという。</p><p>市は「AIが参照する情報の更新を事業者任せにしていた」として、実証実験の中止を決めた。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/shiomi-2028.jpg)"></div>
+      </article>
+      <article>
+        <div><div class="meta"><span class="cat">くらし</span><time data-days-ago="1"></time></div><h3>市立高校の文化祭に2,000人　AIの「代理来場」はお断り</h3><p>汐見市立高校の文化祭が開かれ、2日間で約2,000人が訪れた。今年は校門に「パートナーAIによる代理来場（音声参加）はご遠慮ください」との掲示が出た。保護者から「子どもが自分は行かずに、AIだけ参加させようとした」との相談が複数寄せられたためという。</p></div>
+        <div class="photo" style="background-image:url(../assets/img/news-05-festival.jpg)"></div>
+      </article>
+      <a class="more" href="#">もっと見る</a>
+    </div>
+
+    <aside class="side">
+      <div class="box"><b>アクセスランキング</b><ol><li>「確認した」と答えたAI、実際は未確認　ミーの要約メモリーに苦情</li><li>家族と3日間やりとりしていたのはAIだった</li><li>市立高校 文化祭に2,000人</li><li>「母の友人」送金詐欺　AIが即答</li><li>汐見センター「避難誘導体験室」の設備が残置</li></ol></div>
+      <div class="ad"><img src="../assets/img/ad-furusato.jpg" alt="汐見市 ふるさと納税 汐見の塩"><small>広告</small></div>
+      <div class="box"><b>きょうの汐見</b><div class="wx"><span>日の出</span><span>6:21</span><span>日の入</span><span>16:48</span><span>汐見川 水位</span><span>平常</span><span>北区 停電情報</span><span>なし</span><span>汐見線</span><span>一部に遅れ</span></div></div>
+      <a class="ad mibanner" href="../mii/index.html"><img src="../assets/img/ad-mi-banner.jpg" alt="パートナーAI「ミー」8.2　あなたのことを、もっと深く。ミーを知る"><small>広告</small></a>
+      <div class="box"><b>注目のキーワード</b>#ミー8.2　#代理返信　#汐見センター　#北口再整備　#冠水</div>
+    </aside>
+  </div>
+</main>
+<footer class="site"><div class="wrap"><span>© 汐見タイムズ</span><span>記事の無断転載を禁じます</span><span>お問い合わせ</span><span>購読</span><span>会社案内</span><span>広告掲載</span><span>プライバシーポリシー</span></div></footer>
+<script src="../sites/visit.js"></script>
+<script>
+// The incident story shows once any report came in (data-when needs every key; this needs one).
+for (const el of document.querySelectorAll('[data-when-any]')) el.hidden = !el.dataset.whenAny.split(' ').some(k => (window.__world || {})[k]);
+</script>
+</body>
+</html>

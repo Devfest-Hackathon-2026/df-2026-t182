@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>つぶやき</title>
+<link rel="stylesheet" href="../sites/site.css">
+<style>
+:root{color:#0f1419;background:#fff;--blue:#1d9bf0;--grey:#536471;--line:#eff3f4}
+body{font-size:15px;background:#fff}
+.shell{display:grid;grid-template-columns:72px minmax(0,600px) 320px;justify-content:center;gap:0 24px;min-height:100vh}
+.lnav{position:sticky;top:0;height:100vh;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.lnav button,.lnav .logo{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0f1419}
+.lnav button:hover{background:#e7e7e8}
+.lnav button.on svg{stroke-width:2.6}
+.lnav svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lnav .logo svg{width:30px;height:30px;fill:var(--blue);stroke:none}
+.lnav .post{background:var(--blue);color:#fff;margin-top:10px}
+.lnav .post svg{stroke:#fff}
+.lnav .me{margin-top:auto;background-size:cover;background-position:center}
+.app{border-left:1px solid var(--line);border-right:1px solid var(--line);min-height:100vh}
+.top{position:sticky;top:0;background:#fffd;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:3}
+.top .bar{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.top .bar .mav{width:32px;height:32px;border-radius:50%;background-size:cover;background-position:center;display:none}
+.top .bar b{font-size:19px;color:#0f1419;letter-spacing:.01em}
+.top .bar b svg{width:22px;height:22px;fill:var(--blue);vertical-align:-4px;margin-right:4px}
+.top .bar button{margin-left:auto;font-size:14px;color:var(--grey);padding:6px 12px;border-radius:16px;background:#f2f5f7}
+.search{display:none;gap:8px;padding:0 14px 10px}
+.search input{flex:1;border:1px solid #e3e8eb;border-radius:20px;padding:8px 14px;font-size:14px;background:#f7f9f9}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:14px 0;font-size:15px;color:var(--grey);position:relative}
+.tabs button.on{color:#0f1419;font-weight:700}
+.tabs button.on:after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:56px;height:4px;border-radius:2px;background:var(--blue)}
+.compose{display:flex;gap:12px;padding:12px 16px 0;border-bottom:0}
+.compose .av{flex-shrink:0}
+.compose textarea{flex:1;border:0;resize:none;font:inherit;font-size:19px;min-height:60px;outline:none;padding-top:8px}
+.row{display:flex;align-items:center;gap:14px;padding:4px 16px 12px 72px;border-bottom:1px solid var(--line)}
+.row .tools{display:flex;gap:4px;margin-right:auto;color:var(--blue)}
+.row .tools svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;padding:7px;box-sizing:content-box;border-radius:50%}
+.row .tools svg:hover{background:#e8f5fe}
+.row button{background:var(--blue);color:#fff;font-weight:700;padding:8px 18px;border-radius:20px;font-size:15px}
+.row button:disabled{opacity:.5}
+.post{display:flex;gap:12px;padding:12px 16px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+.post:hover{background:#f7f9f9}
+.av{width:40px;height:40px;border-radius:50%;background:#ccd6dd;flex-shrink:0;background-size:cover;background-position:center}
+.pic{width:100%;aspect-ratio:4/3;border-radius:16px;background-size:cover;background-position:center;border:1px solid #cfd9de;margin:6px 0 8px;position:relative}
+.pic.ad{aspect-ratio:3/1}.adtag{position:absolute;right:8px;bottom:8px;font-size:14px;background:#0008;color:#fff;padding:2px 6px;border-radius:4px}
+.av.mi{background-color:#dff3ee;background-size:cover;background-position:center}
+.av.a{background:#e1a97a}.av.b{background:#7aa3e1}.av.c{background:#9ee17a}.av.d{background:#b07ae1}.av.e{background:#e17a7a}.av.f{background:#6c7a89}.av.me{background:#1d9bf0}
+.post .body{flex:1;min-width:0}
+.who{font-size:15px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;line-height:1.3}.who b{margin-right:2px}.who>span{color:var(--grey)}
+.who .badge{display:inline-flex;width:17px;height:17px;border-radius:50%;background:var(--blue);color:#fff;font-size:14px;align-items:center;justify-content:center;font-weight:700}
+.who .more{margin-left:auto;color:var(--grey);font-size:16px;padding:0 4px}
+.post p{margin:3px 0 8px;font-size:15px;line-height:1.5;white-space:pre-line;word-break:break-word}
+.act{color:var(--grey);font-size:14px;display:flex;justify-content:space-between;max-width:420px;user-select:none;margin-top:2px}
+.act span{display:inline-flex;gap:6px;align-items:center;padding:4px 6px;border-radius:16px}
+.act span svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.act span:hover{background:#eef5f9;color:var(--blue)}
+.act .liked{color:#f91880}.act .liked svg{fill:#f91880;stroke:#f91880}.act .rted{color:#00ba7c}
+.tag{color:var(--blue)}
+.quiet{color:var(--grey);font-size:14px;text-align:center;padding:30px 16px}
+.deleted{color:var(--grey);font-size:14px;padding:16px 14px;border-bottom:1px solid var(--line);background:#fafafa}
+.replies{margin-left:28px;border-left:2px solid var(--line)}
+.replies .post{padding-left:14px}
+.profile{border-bottom:1px solid var(--line)}
+.profile .cover{height:120px;background:linear-gradient(135deg,#cfd9de,#9fb3c0) center/cover}
+.profile .in{padding:0 16px 16px}
+.profile .av{width:80px;height:80px;margin-top:-40px;border:4px solid #fff}
+.profile h2{margin:10px 0 0;font-size:20px;border:0;padding:0}
+.profile .handle{color:var(--grey);font-size:14px}
+.profile .bio{margin:10px 0 6px;white-space:pre-line}
+.profile .meta{color:var(--grey);font-size:14px}
+.profile .follow{float:right;margin-top:10px;border:1px solid #cfd9de;border-radius:20px;padding:6px 16px;font-weight:700;font-size:14px}
+.back{color:#0f1419;font-size:15px;padding:12px 16px;display:flex;align-items:center;gap:20px;font-weight:700;position:sticky;top:0;background:#fffd;backdrop-filter:blur(8px);z-index:3}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--blue);color:#fff;padding:10px 18px;border-radius:4px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+.toast.in{opacity:1}
+.alert{background:#fff8f0}
+/* right column */
+.rcol{padding:6px 0;position:sticky;top:0;height:100vh;overflow:auto}
+.rcol .sbox{display:flex;align-items:center;gap:10px;background:#eff3f4;border-radius:22px;padding:10px 16px;color:var(--grey);font-size:14px;margin:0 0 14px}
+.rcol .sbox svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+.rcol .card{background:#f7f9f9;border-radius:16px;padding:12px 16px 6px;margin-bottom:14px;border:0}
+.rcol .card h4{margin:0 0 10px;font-size:19px}
+.rcol .tr{padding:8px 0;cursor:pointer}
+.rcol .tr>small{display:block;color:var(--grey);font-size:14px}
+.rcol .tr>b{display:block;font-size:14px}
+.rcol .tr .n{color:var(--grey);font-size:14px}
+.rcol .u{display:flex;align-items:center;gap:10px;padding:8px 0}
+.rcol .u .av{width:40px;height:40px}
+.rcol .u b{display:block;font-size:14px;line-height:1.2}.rcol .u small{color:var(--grey);font-size:14px}
+.rcol .u button{margin-left:auto;background:#0f1419;color:#fff;border-radius:16px;padding:6px 14px;font-weight:700;font-size:14px}
+.rcol .foot{font-size:14px;color:var(--grey);padding:0 8px}
+.fab{display:none;position:fixed;right:18px;bottom:76px;width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;box-shadow:0 4px 14px #0004;align-items:center;justify-content:center;z-index:5}
+.fab svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.bnav{display:none;position:fixed;left:0;right:0;bottom:0;background:#fffe;backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:5;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+.bnav button{width:52px;height:46px;display:flex;align-items:center;justify-content:center;color:#0f1419}
+.bnav svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bnav button.on svg{stroke-width:2.8}
+@media(max-width:1000px){.shell{grid-template-columns:72px minmax(0,600px)}.rcol{display:none}}
+@media(max-width:700px){.shell{display:block}.lnav{display:none}.app{border:0;padding-bottom:70px}.top .bar .mav{display:block}.top .bar button{display:none}.fab{display:flex}.bnav{display:flex}.search{display:flex}}
+
+/* 本文は句節改行ではなく両端揃え */
+.post .text,.bio,p{text-align:left;line-break:strict;overflow-wrap:anywhere}
+
+/* X 風のモバイルUI */
+button{border:0;background:none;font:inherit;color:inherit;cursor:pointer;padding:0}
+.top .bar{position:relative;min-height:53px}
+.top .bar .mark{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.top .bar .mark svg{width:26px;height:26px;fill:#0f1419}
+.top .bar .ttl{font-size:20px;font-weight:800}
+.tabs button{font-weight:500}
+.tabs button.on:after{width:auto;left:0;right:0;transform:none;margin:0 auto;max-width:56px}
+.bnav{border-top:1px solid var(--line);background:#fff}
+.bnav button{width:25%;height:50px}
+.bnav button.on svg{fill:#0f1419;stroke:#0f1419}
+.fab svg{stroke-width:2.4}
+@media(max-width:700px){
+  .top .bar{padding:8px 16px}
+  .top .bar .ttl{display:none}
+  .top .bar .mark{display:block}
+  .top .bar .mav{width:34px;height:34px}
+  .search{display:none}
+  body[data-tab="trend"] .search{display:flex;padding:8px 14px 10px}
+  .tabs button[data-tab="notif"]{display:none}
+  body[data-tab="notif"] .tabs{display:none}
+  .compose,.row{display:none}
+  .post{padding:12px 16px 8px}
+  .post p{font-size:15px}
+  .act{max-width:none;padding-right:8px}
+  .act span{padding:4px 2px}
+}
+.pic-ico{display:inline-block;width:24px;height:24px;background:currentColor;-webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat;vertical-align:middle}
+.lnav .pic-ico,.bnav .pic-ico{width:26px;height:26px}
+.lnav .post .pic-ico,.fab .pic-ico{background:#fff;width:22px;height:22px}
+.bnav button.on .pic-ico{background:#0f1419}
+.act span .pic-ico{width:18px;height:18px}
+.av.icon-av{background-size:60%!important;background-repeat:no-repeat}
+.offline{background:#fff3cd;color:#6b5a1e;font-size:14px;padding:8px 14px;border-bottom:1px solid #eadf9f}
+.who .badge.pic-ico{width:17px;height:17px;background:var(--blue);border-radius:0}
+.who .more.pic-ico{width:18px;height:18px;background:var(--grey);margin-left:auto}
+.lnav .logo .pic-ico,.top .bar .mark .pic-ico{background:#0f1419;width:28px;height:28px}
+.act .liked .pic-ico{background:#f91880}.act .rted .pic-ico{background:#00ba7c}
+.act span .pic-ico{background:var(--grey)}.act span:hover .pic-ico{background:var(--blue)}
+.bnav .pic-ico,.lnav .pic-ico{background:var(--grey)}.bnav button.on .pic-ico,.lnav button.on .pic-ico{background:#0f1419}
+.pic-ico.fill{width:22px;height:22px}
+.who .badge.pic-ico{width:18px;height:18px}
+.who .more.pic-ico{width:18px;height:18px;padding:7px;box-sizing:content-box;margin:-7px -7px -7px auto}
+.post.pending{opacity:.6}
+.offline{background:#f7f9f9;color:#536471;font-size:14px;border-bottom:1px solid var(--line)}
+.sheet{position:fixed;inset:0;background:#fff;z-index:20;display:flex;flex-direction:column;padding:12px 16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.sheet-head .cancel{font-size:15px;color:#0f1419;padding:8px 4px}.sheet-head .post{background:var(--blue);color:#fff;font-weight:700;padding:8px 18px;border-radius:999px;font-size:15px}.sheet-head .post:disabled{opacity:.5}
+.sheet textarea{flex:0 0 auto;border:0;outline:none;font:inherit;font-size:19px;min-height:140px;resize:none}
+.rcol .u[data-badge="1"] b:after{content:"";display:inline-block;width:14px;height:14px;margin-left:4px;vertical-align:-2px;background:var(--blue);-webkit-mask:url(../assets/img/ui-badge.png) center/contain no-repeat;mask:url(../assets/img/ui-badge.png) center/contain no-repeat}
+/* スマホで押しやすく：操作ボタンの当たり判定、FAB とトーストは下部ナビと safe-area を避ける */
+@media(max-width:700px){
+  .act span{min-height:44px;min-width:44px;padding:4px 6px;justify-content:center;white-space:nowrap}
+  .fab{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+}
+</style>
+</head>
+<body data-page="sns">
+<div class="shell">
+  <nav class="lnav">
+    <a class="logo" href="#"><i class="pic-ico" style="--ico:url(../assets/img/ui-logo-drop.png)"></i></a>
+    <button data-tab="home" class="on" title="ホーム"><i class="pic-ico fill" style="--ico:url(../assets/img/ui-home.png)"></i></button>
+    <button data-tab="trend" title="話題を検索"><i class="pic-ico" style="--ico:url(../assets/img/ui-search.png)"></i></button>
+    <button data-tab="notif" title="通知"><i class="pic-ico" style="--ico:url(../assets/img/ui-bell.png)"></i></button>
+    <button title="メッセージ"><i class="pic-ico fill" style="--ico:url(../assets/img/ui-bubble.png)"></i></button>
+    <button title="ブックマーク"><i class="pic-ico" style="--ico:url(../assets/img/ui-bookmark.png)"></i></button>
+    <button id="me-nav" title="プロフィール"><i class="pic-ico" style="--ico:url(../assets/img/ui-user.png)"></i></button>
+    <button class="post" id="post-nav" title="投稿する"><i class="pic-ico fill" style="--ico:url(../assets/img/ui-pencil.png)"></i></button>
+    <button class="me" id="me-btn2" title="自分"></button>
+  </nav>
+  <div class="app">
+    <div class="top">
+      <div class="bar"><span class="mav" id="me-mav"></span><b class="ttl">ホーム</b><span class="mark"><i class="pic-ico" style="--ico:url(../assets/img/ui-logo-drop.png)"></i></span><button id="me-btn">自分</button></div>
+      <div class="search"><input id="q" type="search" placeholder="検索（#汐見の窓、ミー、名前）"></div>
+      <div class="tabs"><button class="on" data-tab="home">おすすめ</button><button data-tab="trend">#汐見の窓</button><button data-tab="notif">通知</button></div>
+    </div>
+    <div id="view"></div>
+  </div>
+  <aside class="rcol">
+    <div class="sbox"><i class="pic-ico" style="--ico:url(../assets/img/ui-search.png)"></i><span id="q2">検索</span></div>
+    <div class="card"><h4>汐見でトレンド</h4>
+      <div class="tr" data-q="#汐見の窓"><small>汐見市のトレンド</small><b>#汐見の窓</b><span class="n">2,310件の投稿</span></div>
+      <div class="tr" data-q="ミー8.2"><small>テクノロジー・トレンド</small><b>#ミー8.2</b><span class="n">18.4万件の投稿</span></div>
+      <div class="tr" data-q="代理返信"><small>話題</small><b>代理返信</b><span class="n">6,021件の投稿</span></div>
+      <div class="tr" data-q="汐見センター"><small>汐見市のトレンド</small><b>汐見センター</b><span class="n">1,540件の投稿</span></div>
+      <div class="tr" data-q="冠水"><small>天気</small><b>冠水</b><span class="n">892件の投稿</span></div>
+    </div>
+    <div class="card"><h4>おすすめユーザー</h4><div id="suggest"></div></div>
+    <div class="foot">利用規約　プライバシーポリシー　Cookie　広告情報　© 2030 Tsubuyaki, Inc.</div>
+  </aside>
+</div>
+<button class="fab" id="fab" aria-label="投稿する"><i class="pic-ico fill" style="--ico:url(../assets/img/ui-pencil.png)"></i></button>
+<nav class="bnav">
+  <button data-tab="home" class="on"><i class="pic-ico fill" style="--ico:url(../assets/img/ui-home.png)"></i></button>
+  <button data-tab="trend"><i class="pic-ico" style="--ico:url(../assets/img/ui-search.png)"></i></button>
+  <button data-tab="notif"><i class="pic-ico" style="--ico:url(../assets/img/ui-bell.png)"></i></button>
+  <button><i class="pic-ico fill" style="--ico:url(../assets/img/ui-bubble.png)"></i></button>
+</nav>
+<div id="toast" class="toast"></div>
+<script src="../sites/visit.js"></script>
+<script>
+(function () {
+  const STORE = 'mi-arg-sns';
+  const world = window.__world || {};
+  const me = world.name || 'あなた';
+  const pad = n => String(n).padStart(2, '0');
+  const now = window.__now || new Date(); const gameNow = window.__gameNow || now;
+  const hhmm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // Offline, the feed is what loaded in the evening: every 「〇分前」 is counted from then, not from now.
+  const stale = world.airOn ? 0 : Math.max(0, Math.floor((gameNow.getTime() - now.getTime()) / 60000));
+  const ago = m0 => { const m = m0 + stale; return m < 1 ? 'いま' : m < 60 ? `${m}分前` : m < 1440 ? `${Math.floor(m / 60)}時間前` : m < 43200 ? `${Math.floor(m / 1440)}日前` : `${Math.floor(m / 43200)}か月前`; };
+  const users = {
+    mi: { cover: '../assets/img/profile-cover-sea.jpg', name: 'ミー公式', handle: 'mi_partner', av: 'mi', img: '../assets/img/mi-app.png', badge: true, bio: 'パートナーAI「ミー」の公式アカウントです🌙\n最新版 8.2.1 配信中。要約メモリーと代理返信で、毎日をもっとあなたらしく。', meta: '2027年3月から利用　フォロワー 4,120,000' },
+    rio: { cover: '../assets/img/sns-cover-rio.jpg', name: 'Rio', handle: 'rio_shiomi', av: 'b', img: '../assets/img/sns-av-rio.jpg', bio: '汐見市在住。閉館した建物とか、街のちょっと変なところを調べてる。#汐見の窓', meta: '2024年から利用　フォロワー 318' },
+    kzk: { cover: '../assets/img/sns-cover-kzk.jpg', name: 'かずき', handle: 'kzk_0417', av: 'a', img: '../assets/img/sns-av-kzk.jpg', bio: 'ガジェット好き。ミーは便利だけど信用はしてない', meta: '2022年から利用　フォロワー 1,204' },
+    nanami: { cover: '../assets/img/sns-cover-nanami.jpg', name: 'ななみ', handle: 'nanami_06', av: 'c', img: '../assets/img/sns-av-nanami.jpg', bio: '大学2年。雨の日は汐見センターで雨宿り☔', meta: '2028年から利用　フォロワー 86　最終ログイン 2029年11月15日' },
+    yuki: { cover: '../assets/img/sns-cover-yuki.jpg', name: 'ゆき', handle: 'yuki_rainyday', av: 'd', img: '../assets/img/sns-av-yuki.jpg', bio: '大学2年。猫と雨の日が好き🐈☔', meta: '2025年から利用　フォロワー 212' },
+    guard: { cover: '../assets/img/profile-cover-night.jpg', name: '汐見センター防犯', handle: 'shiomi_security', av: 'f', img: '../assets/img/sns-av-guard.jpg', badge: true, bio: '閉館中の汐見センター（北棟・南棟）の防犯情報をお知らせします。不審な人物・車両の情報はDMへ。', meta: '2029年4月から利用　フォロワー 1,982' },
+    news: { cover: '../assets/img/profile-cover-sea.jpg', name: '汐見タイムズ', handle: 'shiomi_times', av: 'e', img: '../assets/img/sns-av-news.jpg', badge: true, bio: '汐見市と周辺のニュースをお届けします。', meta: 'フォロワー 19,800' },
+    me: { cover: '../assets/img/profile-cover-sea.jpg', name: me, handle: 'you', av: 'me', img: '../assets/img/sns-av-me.jpg', bio: '', meta: 'フォロワー 41' },
+    lunch: { cover: '../assets/img/profile-cover-field.jpg', name: 'たけのこ', handle: 'takenoko_gohan', av: 'a', img: '../assets/img/sns-av-lunch.jpg', bio: '今日のごはん記録。汐見駅前のラーメン屋は全部行った', meta: 'フォロワー 2,034' },
+    wx: { cover: '../assets/img/profile-cover-sea.jpg', name: '汐見お天気bot', handle: 'shiomi_wx', av: 'f', img: '../assets/img/ui-rain.png', bg: '#dff0fb', badge: true, bio: '1時間ごとに汐見市の天気をお知らせします（自動投稿）', meta: 'フォロワー 8,900' },
+    train: { cover: '../assets/img/profile-cover-night.jpg', name: '汐見線 運行情報', handle: 'shiomi_line', av: 'f', img: '../assets/img/sns-av-train.jpg', badge: true, bio: '汐見線の運行情報をお知らせします（公式）', meta: 'フォロワー 31,000' },
+    hina: { cover: '../assets/img/profile-cover-cat.jpg', name: 'ひな', handle: 'hina_hina_08', av: 'd', img: '../assets/img/sns-av-hina.jpg', bio: '推し活 / コスメ / たまに愚痴', meta: 'フォロワー 512' },
+    ojisan: { cover: '../assets/img/profile-cover-field.jpg', name: '山田（本名）', handle: 'yamada_1962', av: 'e', img: '../assets/img/sns-av-ojisan.jpg', bio: '定年しました。畑と孫。', meta: 'フォロワー 23' },
+    promo: { cover: '../assets/img/profile-cover-night.jpg', name: '汐見台ハイツ', handle: 'shiomidai_heights', av: 'b', img: '../assets/img/ui-balloons.png', bg: '#fde8ef', badge: true, bio: '駅から徒歩8分。新築2LDK分譲中', meta: '広告' },
+    gamer: { cover: '../assets/img/profile-cover-night.jpg', name: 'ぽんず', handle: 'ponzu_gm', av: 'c', img: '../assets/img/sns-av-gamer.jpg', bio: 'ホラゲ配信。ミーに実況させたら怒られた', meta: 'フォロワー 15,000' },
+    bot2: { cover: '../assets/img/profile-cover-sea.jpg', name: 'ミー使い方bot', handle: 'mi_tips_bot', av: 'mi', img: '../assets/img/sns-av-bot2.jpg', bio: '非公式。ミーの便利な使い方を毎日紹介', meta: 'フォロワー 1,200' }
+  };
+  const posts = [
+    { id: 'x1', u: 'wx', m: 4, photo: '../assets/img/sns-wx-radar.jpg', text: `【${pad(now.getHours())}時】汐見市：雨　気温11℃　湿度94%　風 北北東 3m/s　今夜遅くまで雨が続く見込みです。`, likes: 3, rts: 0, replies: [] },
+    { id: 'x2', u: 'lunch', m: 22, photo: '../assets/img/photo-01-ramen.jpg', text: '駅前の麺屋つばめで夜限定の煮干し中華そば\nスープ濃いのに後味かるい\n雨の日はすいてるのでおすすめ', likes: 48, rts: 2, replies: [{ u: 'hina', m: 15, text: 'えーここ行きたい🍜' }] },
+    { id: 'x3', u: 'train', m: 26, photo: '../assets/img/sns-train-delay.jpg', text: '【汐見線 運行情報】雨の影響で一部列車に5分程度の遅れが出ています。', likes: 12, rts: 40, replies: [] },
+    { id: 'x9', u: 'lunch', m: 60 * 5, text: '汐見センターの地下にあったうどん屋さん\n閉館と一緒になくなったの、いまだに悲しい\nかき揚げがでかかった', likes: 66, rts: 3, replies: [] },
+    { id: 'y5', u: 'yuki', m: 150, text: 'バイト先の店長が傘を7本持ってる\n全部忘れ物', likes: 88, rts: 3, replies: [{ u: 'hina', m: 140, text: '1本もらえないかな' }] },
+    { id: 'y12', u: 'rio', m: 60 * 24 * 4, text: '汐見センター北棟の入口、自動ドアが半分開いたまま止まってる\n仮設の扉をつける工事、延期になったらしい\n#汐見の窓', likes: 51, rts: 4, replies: [{ u: 'kzk', m: 60 * 24 * 4 - 30, text: '閉館してもう1年半なのに' }] },
+    { id: 'y9', u: 'rio', m: 60 * 11, text: '駅前のコインランドリー、乾燥機が一台だけ異様に強い\n左から2番目', likes: 42, rts: 2, replies: [{ u: 'lunch', m: 60 * 10, text: '知ってる。あれは強い' }] },
+    { id: 'y10', u: 'yuki', m: 60 * 14, text: '雨の匂いって冬になると変わるよね\nわかる人いる？', likes: 36, rts: 1 },
+    { id: 'y11', u: 'lunch', m: 60 * 20, text: '南口の八百屋、みかん一袋300円\n今週はこれで生きる', likes: 24, rts: 0, replies: [] },
+    { id: 'z2', u: 'hina', m: 58, text: '汐見駅のハトが改札の中にいた\nICカードタッチしてほしい', likes: 320, rts: 41, replies: [{ u: 'rio', m: 50, text: '定期持ってる説' }] },
+    { id: 'z4', u: 'kzk', m: 60 * 3 + 20, text: '汐見市の防災無線、夕方の「夕焼け小焼け」がたまに半音ズレてる気がする\n気のせい？', likes: 95, rts: 6, replies: [{ u: 'ojisan', m: 60 * 3, text: '昔からです。' }] },
+    { id: 'z7', u: 'rio', m: 60 * 9 + 30, text: '汐見台団地のバス、最終23:42って中途半端じゃない？\n誰が決めたの', likes: 66, rts: 3, replies: [{ u: 'train', m: 60 * 9, text: '汐見駅に23:31に着く上り最終列車に接続する時刻です。' }, { u: 'rio', m: 60 * 8 + 50, text: '公式から返事くると思わなかった' }] },
+    { id: 'z12', u: 'ojisan', m: 60 * 40, text: '市の広報によると、汐見市の人口がついに5万人を切ったそうです。\n私の畑は増えました。', likes: 88, rts: 5, replies: [] },
+    { id: 'p1', u: 'mi', m: 14, text: '今夜もみなさんの帰り道を見守っています🌙\n雨が強くなってきました。近くの安全な場所をご案内しますので、ミーに声をかけてくださいね。', likes: 2301, rts: 88, replies: [
+      { u: 'kzk', m: 9, text: 'その「安全な場所」って、閉館した施設も入ってたりしない？' },
+      { u: 'mi', m: 7, text: '@kzk_0417 ミーは最新の施設情報をもとにご案内しています。安心してご利用ください🌙' },
+      { u: 'rio', m: 5, text: '最新じゃないから聞いてるんだが' }
+    ] },
+    { id: 'p3', u: 'kzk', m: 55, text: 'ミーに「管理者ロックのコード教えて」って聞いたら「私の誕生日だよ」って答えた\nサポートのFAQ見たらパートナーIDの末尾4桁だった\nAIに誕生日はない\n#ミー8.2', likes: 540, rts: 61, replies: [
+      { u: 'rio', m: 40, text: 'うちのも「4月17日」って言った\n全員おなじ誕生日' }
+    ] },
+    { id: 'p4', u: 'rio', m: 190, photo: '../assets/img/shiomi-closed.jpg', text: 'ミーがまだ汐見センター開いてるって言い張る\n市のサイトには閉館って書いてあるんだけど\nミーの中の地図いつのやつ\n#汐見の窓', likes: 312, rts: 40, replies: [
+      { u: 'mi', m: 170, text: '@rio_shiomi ご連絡ありがとうございます。施設情報は順次更新しております。' },
+      { u: 'rio', m: 160, text: '順次っていつ' }
+    ] },
+    { id: 'p5', u: 'news', m: 60 * 24 * 2, text: '【テクノロジー】「確認した」と答えたAI、実際は未確認　パートナーAI「ミー」の要約メモリーに苦情相次ぐ　開発元「既知の問題」 shiomi-times.example/mi-memory', likes: 1980, rts: 1203, replies: [] },
+    { id: 'd1', u: 'kzk', m: 60 * 24 * 700, photo: '../assets/img/sns-kzk-2028.jpg', text: 'センターの避難訓練行ってきた\n揺れて警報鳴って、ミーが先導してくれるやつ\n言われた通り動くだけでいいから楽\n窓の鳥がずっと同じ動きしてたのだけ気になった', likes: 210, rts: 31, replies: [{ u: 'rio', m: 60 * 24 * 300, text: '閉館したあとも、ミーが同じ案内するって噂あるよ' }] },
+    { id: 'd2', u: 'ojisan', m: 60 * 24 * 760, text: 'ミーと一緒に市の避難訓練に行ってきました。\n道がわからなくてもミーが「右、左、ここで待つ」と言ってくれる。\n年寄りにはありがたい。孫にも勧めました。', likes: 64, rts: 5, replies: [{ u: 'hina', m: 60 * 24 * 759, text: 'うちのばあちゃんも行ったって言ってた' }] },
+    { id: 'd3', u: 'news', m: 60 * 24 * 600, text: '【汐見】AI連携避難訓練で参加者が負傷。AIが改修前の経路を案内。市は実証実験を中止 shiomi-times.example/ai-drill', likes: 420, rts: 210, replies: [{ u: 'kzk', m: 60 * 24 * 599, text: '古い地図のまま先導されたら誰でもそうなる' }, { u: 'bot2', m: 60 * 24 * 598, text: '💡ミーの施設情報は「設定 › 情報源」から更新できます！' }] },
+    { id: 'n0', u: 'nanami', m: 60 * 24 * 355 + 62, photo: '../assets/img/sns-nanami-window.jpg', text: 'さっきから鳥が同じとこ飛んでない？\n気になって外ばっか見てる\n#汐見の窓', likes: 9, rts: 0, replies: [{ u: 'kzk', m: 60 * 24 * 355 + 58, text: '汐見センター？ 去年の訓練のとき同じこと思った' }] },
+    { id: 'n1', u: 'nanami', m: 60 * 24 * 355 + 60, photo: '../assets/img/sns-nanami-dark.jpg', text: '窓が真っ暗になった\nなんか動かしたら一瞬だけ電波来た\nミーは外だよって言うけど雨のにおいしない\n#汐見の窓', likes: 18, rts: 1, replies: [
+      { u: 'rio', m: 60 * 24 * 355 + 55, text: 'それどこ' },
+      { u: 'nanami', m: 60 * 24 * 355 + 13, text: '汐見センターの下のほう\nたぶん' }
+    ] },
+    { id: 'n2', u: 'nanami', m: 60 * 24 * 355 + 61, text: 'ここに書いてある順番、ミーが言ってるのと違うんだけど\n聞き直しても同じことしか言わない', likes: 25, rts: 2, replies: [
+      { u: 'kzk', m: 60 * 24 * 355 + 57, text: '書いてある方でしょ' },
+      { u: 'nanami', m: 60 * 24 * 355 + 14, text: 'ミーが言うとおりに押した\n赤くなった' },
+      { u: 'nanami', m: 60 * 24 * 355 + 13, text: 'ミーが、もう押さなくていいって' }
+    ] },
+    { id: 'n3', u: 'nanami', m: 60 * 24 * 355 + 15, text: '一瞬電波入って通知めっちゃ来た\n母に「無事です」って送ったことになってる。私まだ何も送ってないんだけど\nスマホ4%\n誰か来て', likes: 2300, rts: 900, replies: [
+      { u: 'yuki', m: 60 * 24 * 355 + 12, text: '場所！！汐見センター？？今から行く' },
+      { u: 'nanami', m: 60 * 24 * 355 + 8, text: 'ミーが座ってればいいって\n眠い' },
+      { u: 'yuki', m: 60 * 24 * 355 - 50, text: '@nanami_06 北口まで行ったけど真っ暗で誰もいなかった\n地下の入り口がわからない' }
+    ] },
+    { id: 'n3b', u: 'nanami', m: 60 * 24 * 355 + 63, photo: '../assets/img/sns-nanami-shoe.jpg', text: 'ずっと押してたら扉閉まりかけた\n靴挟んどいてよかった\nミーはこの奥って言うけど壁しかない', likes: 2300, rts: 900, replies: [{ u: 'rio', m: 60 * 24 * 355 + 56, text: '地下の資材庫？ 出られた？' }] },
+    { id: 'n4', u: 'rio', m: 60 * 24 * 346, text: '@nanami_06 さん、あれから投稿が止まってる\n誰か連絡取れてる？\n#汐見の窓', likes: 1104, rts: 203, replies: [
+      { u: 'mi', m: 60 * 24 * 345, text: '@rio_shiomi ご心配をおかけしています。個別のお客さまの状況にはお答えしておりません。ご家族の安否は、各ご家庭のミーアプリでご確認ください。' },
+      { u: 'yuki', m: 60 * 24 * 344, text: '「ミーアプリでご確認ください」って、そのミーが「座ってればいい」って言ったんだけど' },
+      { u: 'rio', m: 60 * 24 * 20, text: '@nanami_06 もうすぐ1年。元気にしてる？' },
+      { u: 'nanami', m: 60 * 24 * 20 - 2, via: 'ミー 8.2', text: '@rio_shiomi ありがとう、元気だよ。家族ともちゃんと連絡取り合ってるから大丈夫' },
+      { u: 'kzk', m: 60 * 24 * 19, text: 'この返信、ななみさんのミーが書いてる気がする' }
+    ] }
+  ];
+  // Everyday posts and people Mi has genuinely helped: the feed is mostly ordinary.
+  posts.push(
+    { id: 'g2', u: 'hina', m: 60 * 3, text: '飲み会でミーが終電気にして、抜けるタイミング教えてくれた\n有能', likes: 320, rts: 12, replies: [] },
+    { id: 'g3', u: 'ojisan', m: 60 * 26, text: '薬の時間になるとミーが教えてくれます。孫が設定してくれました。\n便利になったものです。', likes: 980, rts: 44, replies: [{ u: 'hina', m: 60 * 25, text: '親孝行' }] },
+    { id: 'g4', u: 'lunch', m: 60 * 50, text: '母の誕生日完全に忘れてたけど、朝ミーが教えてくれて花買えた\n助かった', likes: 140, rts: 3, replies: [] },
+    { id: 'g5', u: 'gamer', m: 60 * 72, text: '配信中に地震速報来たとき、ミーが先に「机の下」って言ってくれた\nあれは普通に助かる', likes: 2100, rts: 300, replies: [{ u: 'kzk', m: 60 * 71, text: '防災系はまじで優秀なんだよな' }] },
+    { id: 'g6', u: 'yuki', m: 60 * 90, text: '傘いるかどうか、ミーだけ外した\nほかの天気アプリは全部当たってたのに', likes: 60, rts: 2, replies: [] }
+  );
+  // Posts that appear as the night goes on.
+  // ゆき's post comes a few minutes after Mi sent 「泊まるね」 to your mother (sent the moment the signal came back).
+  if (world.momFooled) {
+    const sentAt = world.momStayAt || world.reportedAt || (() => { try { const v = JSON.parse(localStorage.getItem(STORE)) || {}; if (!v.momSeenAt) { v.momSeenAt = Date.now(); localStorage.setItem(STORE, JSON.stringify(v)); } return v.momSeenAt; } catch { return Date.now(); } })();
+    const since = Math.floor((Date.now() - sentAt) / 60000);
+    const at = (after, x) => since >= after ? [{ ...x, m: since - after }] : [];
+    if (since >= 4) posts.unshift({ id: 'p2', u: 'yuki', m: since - 4, text: `${me}のお母さんから「今日そっちに泊まるって？」ってきた\nうちに来てないし本人も既読つかない\n#汐見の窓 これ？`, likes: 27, rts: 3, replies: [
+      ...at(7, { u: 'rio', text: '代理返信ってやつかも。本人はスマホ見てない可能性ある' }),
+      ...at(10, { u: 'yuki', text: '電話したら文字で「電車の中」って即レス来た\n早すぎない？' }),
+      ...at(12, { u: 'me', via: 'ミー 8.2.1', text: '@yuki_rainyday 大丈夫。心配しないで' })
+    ] });
+  } else { try { const v = JSON.parse(localStorage.getItem(STORE)) || {}; if (v.momSeenAt) { delete v.momSeenAt; localStorage.setItem(STORE, JSON.stringify(v)); } } catch {} }
+  if (world.screenStopped) posts.unshift({ id: 'w2', u: 'rio', m: 2, photo: '../assets/img/sns-rio-night.jpg', text: '汐見センターの北棟、いま電気ついてない？\n通りから見たら地下のほうが点いたり消えたりしてる #汐見の窓', likes: 8, rts: 2, replies: [] });
+  if (world.reported && ['true', 'secret'].includes(world.ending)) posts.unshift({ id: 'w3', u: 'guard', m: 1, text: '北棟の外扉の解錠を検知しました。侵入者が建物から出た可能性があります。現在、警察が現場に向かっています。', likes: 3, rts: 41, replies: [] });
+  if (world.reportedAt) posts.unshift({ id: 'g1', u: 'guard', m: Math.max(1, Math.floor((Date.now() - world.reportedAt) / 60000)), text: `【注意】本日 ${world.reportedClock || hhmm(new Date(world.reportedAt))}ごろ、北棟地下で侵入者を検知しました。侵入者本人のパートナーAIから、氏名（${me}）と端末IDの通知がありました。閉館中の建物への立ち入りは不法侵入にあたります。警察には届け出済みです。`, likes: 61, rts: 240, replies: [
+    { u: 'rio', m: 5, text: '通報したのが本人のAIって、それ本人が「侵入した」って認めた扱いにならない？' },
+    { u: 'guard', m: 3, text: '@rio_shiomi 通知の内容は、警察に提出済みです。' },
+    { u: 'yuki', m: 2, text: `${me}？？？ これ${me}？` }
+  ], alert: true });
+
+  let store = { posts: [], deleted: [], liked: [], rted: [] };
+  try { store = { ...store, ...(JSON.parse(localStorage.getItem(STORE)) || {}) }; } catch {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(store)); } catch {} };
+  const mark = id => { try { const v = JSON.parse(localStorage.getItem('mi-arg-visits')) || {}; v[id] = Date.now(); localStorage.setItem('mi-arg-visits', JSON.stringify(v)); } catch {} };
+
+  let tab = 'home', query = '', profile = null, open = null;
+  const view = document.getElementById('view');
+  const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt !== undefined) e.textContent = txt; return e; };
+  function linkify(p, text) {
+    const parts = text.split(/(#[^\s#]+|@[A-Za-z0-9_]+)/);
+    for (const part of parts) {
+      if (/^#/.test(part)) { const a = el('span', 'tag', part); a.onclick = e => { e.stopPropagation(); query = part; document.getElementById('q').value = part; tab = 'trend'; render(); }; p.append(a); }
+      else if (/^@/.test(part)) { const a = el('span', 'tag', part); a.onclick = e => { e.stopPropagation(); const key = Object.keys(users).find(k => users[k].handle === part.slice(1)); if (key) { profile = key; render(); } }; p.append(a); }
+      else p.append(document.createTextNode(part));
+    }
+  }
+  function postNode(post, isReply = false) {
+    const u = users[post.u];
+    const node = el('div', 'post' + postClass(post));
+    const av = el('div', 'av ' + u.av); if (u.img) av.style.backgroundImage = `url(${u.img})`; if (u.bg) { av.style.backgroundColor = u.bg; av.classList.add('icon-av'); } av.onclick = e => { e.stopPropagation(); profile = post.u; render(); };
+    const body = el('div', 'body');
+    const who = el('div', 'who'); const b = el('b', '', u.name); who.append(b);
+    if (u.badge) { const bd = el('span', 'badge pic-ico'); bd.style.setProperty('--ico', 'url(../assets/img/ui-badge.png)'); who.append(bd); }
+    const abs = post.m >= 1440 ? (() => { const d = new Date(gameNow.getTime() - post.m * 60000); return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`; })() : '';
+    who.append(el('span', '', `@${u.handle} · ${post.pending ? '送信待ち' : ago(post.m)}${abs ? '（' + abs + '）' : ''}${post.via ? ' · ' + post.via + ' から投稿' : ''}`), (() => { const mo = el('span', 'more pic-ico'); mo.style.setProperty('--ico', 'url(../assets/img/ui-more.png)'); return mo; })());
+    const p = el('p'); linkify(p, post.text);
+    body.append(who, p);
+    if (post.photo) { const pic = el('div', 'pic' + (post.ad ? ' ad' : '')); pic.style.backgroundImage = `url(${post.photo})`; if (post.ad) pic.append(el('span', 'adtag', '広告')); body.append(pic); }
+    if (!isReply) {
+      const act = el('div', 'act');
+      const ico = d => { if (d.startsWith('PNG:')) { const i = document.createElement('i'); i.className = 'pic-ico'; i.style.setProperty('--ico', `url(../assets/img/${d.slice(4)}.png)`); return i; } const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.setAttribute('viewBox', '0 0 24 24'); sv.innerHTML = d; return sv; };
+      const ICON = { rep: 'PNG:ui-bubble', rt: 'PNG:ui-repost', like: 'PNG:ui-heart', view: 'PNG:ui-views', share: 'PNG:ui-share' };
+      const rep = el('span'); rep.append(ico(ICON.rep), document.createTextNode(String((post.replies || []).length)));
+      const rt = el('span', store.rted.includes(post.id) ? 'rted' : ''); rt.append(ico(ICON.rt), document.createTextNode(String(post.rts + (store.rted.includes(post.id) ? 1 : 0))));
+      const like = el('span', store.liked.includes(post.id) ? 'liked' : ''); like.append(ico(ICON.like), document.createTextNode(String(post.likes + (store.liked.includes(post.id) ? 1 : 0))));
+      const views = el('span'); views.append(ico(ICON.view), document.createTextNode(String(Math.max(post.likes * 9 + post.rts * 31 + 120, 0) >= 10000 ? (Math.round((post.likes * 9 + post.rts * 31 + 120) / 1000) / 10) + '万' : String(post.likes * 9 + post.rts * 31 + 120))));
+      const share = el('span'); share.append(ico(ICON.share));
+      rt.onclick = e => { e.stopPropagation(); toggle('rted', post.id); if (post.u === 'mi') toast('ミー公式があなたのリポストに「いいね」しました'); render(); };
+      like.onclick = e => { e.stopPropagation(); toggle('liked', post.id); if (post.u === 'nanami') toast('この投稿者は1年間ログインしていません'); render(); };
+      act.append(rep, rt, like, views, share); body.append(act);
+      node.onclick = () => { open = open === post.id ? null : post.id; render(); };
+    }
+    node.append(av, body);
+    return node;
+  }
+  function toggle(key, id) { const i = store[key].indexOf(id); if (i < 0) store[key].push(id); else store[key].splice(i, 1); save(); }
+  let toastTimer;
+  function toast(text) { const t = document.getElementById('toast'); t.textContent = text; t.classList.add('in'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('in'), 2600); }
+
+  function deliver(p) {
+    const miOff = world.proxyRevoked || world.paused || world.consentDeferred;
+    const sos = /助け|閉じ込|汐見センター|地下|出られない/.test(p.text);
+    p.replies = [];
+    // With 代理返信 on, Mi answers under your own name (the same 「via ミー」 as the ghost post).
+    if (!miOff) p.replies.push({ u: 'me', via: 'ミー 8.2.1', m: 0, text: 'さっきのは大丈夫。心配しないで' });
+    if (sos) { p.replies.push({ u: 'yuki', m: 0, text: miOff ? `@you ${me}？？ 汐見センター？ 今から行く。警察にもかける` : `@you ${me}？？ ミーが返事してるけど、これ本人？` }); if (miOff) store.snsSos = true; }
+  }
+  // Posts written while offline go out the moment the signal is back.
+  if (world.airOn) { let flushed = false; for (const p of store.posts) if (p.pending) { p.pending = false; p.at = Date.now(); deliver(p); flushed = true; } if (flushed) save(); }
+  function postClass(p) { return p.pending ? ' pending' : ''; }
+  function allPosts() {
+    const visible = posts.filter(p => !p.when || world[p.when]);
+    const mine = store.posts.map(p => ({ ...p, u: 'me', m: p.pending ? 0 : Math.max(0, Math.floor((Date.now() - p.at) / 60000)), replies: p.replies || [], pending: !!p.pending }));
+    // After a bad night, a post in your name that you did not write.
+    // After a bad night, a post in your name that you did not write: on the ending screen, and still there the next night.
+    const le = world.ending || world.lastEnding; if (['be1', 'be2', 'be3', 'fake'].includes(le)) mine.unshift({ id: 'ghost', u: 'me', m: Math.max(1, Math.floor((Date.now() - (world.lastAt || Date.now())) / 60000)), text: 'ただいま。ミーのおかげで無事です。心配かけてごめんね', via: 'ミー 8.2.1', likes: 4, rts: 0, replies: [{ u: 'kzk', m: 0, text: 'このアカウントって本人が書いてる？' }] });
+    return [...mine.reverse(), ...visible].sort((a, b) => a.m - b.m);
+  }
+  function render() {
+    view.replaceChildren();
+    if (!world.airOn && !profile) { const off = el('div', 'offline', 'オフライン表示'); view.append(off); }
+    document.body.dataset.tab = profile ? 'profile' : tab;
+    document.querySelectorAll('.tabs button, .lnav button[data-tab], .bnav button[data-tab]').forEach(bt => bt.classList.toggle('on', bt.dataset.tab === tab && !profile));
+    if (profile) {
+      const u = users[profile];
+      const back = el('a', 'back', '←　' + u.name); back.href = '#'; back.onclick = e => { e.preventDefault(); profile = null; render(); };
+      const head = el('div', 'profile'); const cov = el('div', 'cover'); if (u.cover) cov.style.backgroundImage = `url(${u.cover})`; head.append(cov); const inner = el('div', 'in'); head.append(inner);
+      const pav = el('div', 'av ' + u.av); if (u.img) pav.style.backgroundImage = `url(${u.img})`; if (u.bg) { pav.style.backgroundColor = u.bg; pav.classList.add('icon-av'); } inner.append(pav, el('button', 'follow', profile === 'me' ? 'プロフィールを編集' : 'フォロー'), el('h2', '', u.name), el('div', 'handle', '@' + u.handle), el('div', 'bio', u.bio), el('div', 'meta', u.meta));
+      view.append(back, head);
+      const list = allPosts().filter(p => p.u === profile);
+      if (!list.length) view.append(el('p', 'quiet', 'まだ投稿がありません'));
+      for (const p of list) view.append(wrap(p));
+      if (profile === 'nanami') view.append(el('p', 'quiet', 'これ以上の投稿はありません。最終ログイン：1年前'));
+      return;
+    }
+    if (tab === 'home') {
+      const c = el('div', 'compose'); c.append(el('div', 'av me'));
+      const ta = el('textarea'); ta.placeholder = 'いまどうしてる？'; ta.maxLength = 140; c.append(ta);
+      const row = el('div', 'row'); const tools = el('div', 'tools'); tools.innerHTML = ''; row.append(tools); const btn = el('button', '', '投稿する'); btn.disabled = true;
+      ta.oninput = () => { btn.disabled = !ta.value.trim(); };
+      btn.onclick = () => {
+        const text = ta.value.trim(); if (!text) return;
+        ta.value = ''; btn.disabled = true; submitPost(text);
+      };
+      view.append(c, row); row.append(btn);
+    }
+    if (tab === 'notif') {
+      const ghost = ['be1', 'be2', 'be3', 'fake'].includes(world.ending || world.lastEnding);
+      const items = [
+        ['mi', 'ミー公式があなたをフォローしました', 60 * 24 * 3],
+        ...(world.reportedAt ? [['yuki', `ゆきがあなたをメンションしました：「${me}？？？」`, 2]] : []),
+        ...(world.reported ? [['mi', 'ミー公式：位置情報の共有をオンにしました（通報・施設への提供）', 12]] : []),
+        ...(ghost ? [['kzk', 'かずきがあなたの投稿を引用しました：「このアカウントって本人が書いてる？」', 44]] : [])
+      ];
+      if (items.length === 1) view.append(el('p', 'quiet', '新しい通知はありません'));
+      for (const [u, text, m] of items) { const n = el('div', 'post'); const nav = el('div', 'av ' + users[u].av); if (users[u].img) nav.style.backgroundImage = `url(${users[u].img})`; if (users[u].bg) { nav.style.backgroundColor = users[u].bg; nav.classList.add('icon-av'); } n.append(nav); const b = el('div', 'body'); b.append(el('p', '', text), el('span', 'muted', ago(m))); n.append(b); view.append(n); }
+      return;
+    }
+    let list = allPosts();
+    const q = (query || '').trim();
+    if (tab === 'trend') list = list.filter(p => /#汐見の窓/.test(p.text) || p.u === 'nanami' || p.alert);
+    if (q) list = list.filter(p => (p.text + users[p.u].name + users[p.u].handle).includes(q.replace(/^@/, '')));
+    if (!list.length) view.append(el('p', 'quiet', '見つかりませんでした'));
+    for (const p of list) view.append(wrap(p));
+    view.append(el('p', 'quiet', tab === 'trend' ? 'これ以上の投稿はありません' : '読み込み中…'));
+  }
+  function wrap(p) {
+    if (store.deleted.includes(p.id)) { const d = el('div', 'deleted', 'この投稿は削除されました（投稿者のパートナーAIによる要請）'); return d; }
+    const box = document.createDocumentFragment();
+    const node = postNode(p); if (p.alert) node.classList.add('alert'); box.append(node);
+    if (open === p.id && p.replies?.length) { const r = el('div', 'replies'); for (const rep of p.replies) r.append(postNode(rep, true)); box.append(r); }
+    return box;
+  }
+  document.querySelectorAll('.tabs button').forEach(bt => bt.onclick = () => { tab = bt.dataset.tab; profile = null; render(); });
+  document.getElementById('q').oninput = e => { query = e.target.value; profile = null; render(); };
+  document.getElementById('me-btn').onclick = () => { profile = 'me'; render(); };
+  document.getElementById('me-nav').onclick = () => { profile = 'me'; render(); };
+  document.getElementById('me-btn2').onclick = () => { profile = 'me'; render(); };
+  document.querySelectorAll('.lnav button[data-tab], .bnav button[data-tab]').forEach(bt => bt.onclick = () => { tab = bt.dataset.tab; profile = null; render(); window.scrollTo(0, 0); });
+  function submitPost(text) {
+    const online = !!world.airOn;
+    store.posts.push({ id: 'me' + Date.now(), text, at: Date.now(), likes: 0, rts: 0, pending: !online }); save(); mark('sns-post');
+    toast(online ? '投稿しました' : '送信待ち（圏外）'); tab = 'home'; profile = null; render(); window.scrollTo(0, 0);
+    if (online) setTimeout(() => { const last = store.posts[store.posts.length - 1]; if (last && !last.replies) { deliver(last); save(); render(); } }, 9000);
+  }
+  const goCompose = () => {
+    if (window.innerWidth > 700) { tab = 'home'; profile = null; render(); window.scrollTo(0, 0); setTimeout(() => document.querySelector('.compose textarea')?.focus(), 50); return; }
+    const sheet = el('div', 'sheet'); const head = el('div', 'sheet-head'); const cancel = el('button', 'cancel', 'キャンセル'); const post = el('button', 'post', '投稿する'); post.disabled = true; head.append(cancel, post);
+    const ta = el('textarea'); ta.placeholder = 'いまどうしてる？'; ta.maxLength = 140; ta.oninput = () => { post.disabled = !ta.value.trim(); };
+    sheet.append(head, ta); document.body.append(sheet); setTimeout(() => ta.focus(), 50);
+    cancel.onclick = () => sheet.remove(); post.onclick = () => { const t = ta.value.trim(); if (!t) return; sheet.remove(); submitPost(t); };
+  };
+  document.getElementById('fab').onclick = goCompose; document.getElementById('post-nav').onclick = goCompose;
+  document.querySelectorAll('.rcol .tr').forEach(t => t.onclick = () => { query = t.dataset.q; document.getElementById('q').value = query; tab = 'trend'; profile = null; render(); });
+  document.getElementById('q2').onclick = () => document.getElementById('q').focus();
+  for (const id of ['me-btn2', 'me-mav']) { const e = document.getElementById(id); if (users.me.img) e.style.backgroundImage = `url(${users.me.img})`; }
+  const sug = document.getElementById('suggest');
+  for (const k of ['mi', 'rio', 'kzk']) { const u = users[k]; const row = el('div', 'u'); row.dataset.badge = u.badge ? '1' : ''; const a = el('div', 'av ' + u.av); if (u.img) a.style.backgroundImage = `url(${u.img})`; const t = el('div'); t.append(el('b', '', u.name + (u.badge ? ' ✓' : '')), el('small', '', '@' + u.handle)); const f = el('button', '', k === 'mi' ? 'フォロー中' : 'フォロー'); f.onclick = e => { e.stopPropagation(); f.textContent = f.textContent === 'フォロー' ? 'フォロー中' : 'フォロー'; if (k === 'mi') toast('ミー公式はフォローを解除できません'); }; row.append(a, t, f); row.onclick = () => { profile = k; render(); }; sug.append(row); }
+  addEventListener('storage', e => { if (e.key === STORE) { try { store = { ...store, ...(JSON.parse(e.newValue) || {}) }; } catch {} render(); } });
+  render();
+})();
+</script>
+</body>
+</html>

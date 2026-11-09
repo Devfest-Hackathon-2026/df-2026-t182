@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap");
+:root{font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic Medium","Yu Gothic",sans-serif;color:#222;background:#fff;line-height:1.8;font-size:15px}
+*{box-sizing:border-box}
+body{margin:0}
+a{color:inherit}
+img{max-width:100%}
+.wrap{max-width:860px;margin:0 auto;padding:0 18px}
+header.site{border-bottom:1px solid #e3e3e3;background:#fff;position:sticky;top:0;z-index:2}
+header.site .wrap{display:flex;align-items:center;gap:16px;min-height:60px}
+header.site .logo{font-weight:700;font-size:18px;text-decoration:none;letter-spacing:.04em}
+header.site nav{margin-left:auto;display:flex;gap:16px;font-size:14px}
+header.site nav a{text-decoration:none;color:#555}
+.hero{padding:44px 0 26px;border-bottom:1px solid #eee}
+.hero h1{font-size:26px;margin:0 0 8px;font-weight:700}
+.hero p{margin:0;color:#555}
+main{padding:24px 0 60px}
+section{margin:0 0 40px}
+h2{font-size:18px;margin:0 0 14px;padding-left:12px;border-left:4px solid currentColor}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul{padding-left:20px}
+small,.muted{color:#777;font-size:14px}
+.notice{border:1px solid #e0b4a8;background:#fff6f3;color:#7a2b1f;padding:14px 16px;border-radius:6px;margin:0 0 20px}
+.list{list-style:none;padding:0;margin:0;border-top:1px solid #eee}
+.list li{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #eee;flex-wrap:wrap}
+.list time{color:#777;font-size:14px;min-width:92px}
+.list .tag{font-size:14px;padding:2px 8px;border-radius:3px;background:#eee;color:#555;align-self:center}
+.card{border:1px solid #e5e5e5;border-radius:8px;padding:18px 20px;margin:0 0 16px;background:#fff}
+.faq dt{font-weight:700;margin:18px 0 4px}
+.faq dd{margin:0 0 0 0;color:#444}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:#666}.kv dd{margin:0}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;padding:10px 0 10px 40px;position:relative;border-bottom:1px solid #eee}
+.steps li:before{content:counter(s);position:absolute;left:0;top:10px;width:26px;height:26px;border-radius:50%;background:#333;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+footer.site{border-top:1px solid #e3e3e3;padding:26px 0 40px;font-size:14px;color:#777}
+footer.site .wrap{display:flex;flex-wrap:wrap;gap:8px 24px}
+.btn{display:inline-block;padding:10px 18px;border-radius:6px;background:#333;color:#fff;text-decoration:none;font-size:14px}
+mark{background:#fff3b0}
+.mono{font-family:ui-monospace,Menlo,monospace}
+blockquote{margin:12px 0;padding:10px 16px;border-left:3px solid #ccc;color:#555;background:#fafafa}
+@media(max-width:600px){header.site nav{display:none}.hero h1{font-size:22px}.kv{grid-template-columns:1fr}}
+
+/* phrase-level Japanese wrapping (wrap.js): never break inside a word */
+.ph{display:inline-block;max-width:100%}
+
+.photo{background-size:cover;background-position:center}

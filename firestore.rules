@@ -1,0 +1,102 @@
+rules_version = '2';
+// 『ミーを信じて』授業・ワークショップ機能。サーバー側の処理（Cloud Functions）を使わず、ここで権限と送信項目を守る。
+// pub/{code}            参加コードから引く公開情報（授業名・案内・受付状態）。get だけ、list は不可。
+// classes/{code}        授業の持ち主（先生の uid）。先生本人だけが読める。
+//   members/{pid}       参加の記録（uid と時刻だけ）。参加受付を終えたあとも、参加済みの人が提出できるようにするため。
+//   subs/{pid}          提出（参加者ID1つにつき1件）。読めるのは先生と、送った本人だけ。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function authed() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    // 先生＝Google でログインした人。匿名の人は授業を作れない。
+    function teacher() { return authed() && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+    function classPath(cid) { return /databases/$(database)/documents/classes/$(cid); }
+    function pubPath(cid) { return /databases/$(database)/documents/pub/$(cid); }
+    function memberPath(cid, pid) { return /databases/$(database)/documents/classes/$(cid)/members/$(pid); }
+    function ownerOf(cid) { return teacher() && exists(classPath(cid)) && get(classPath(cid)).data.ownerUid == me(); }
+    function codeOk(c) { return c.matches('^[A-HJ-NP-Z2-9]{6}$'); }
+    function pidOk(p) { return p.matches('^[A-Za-z0-9]{20}$'); }
+    function str(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
+    function exact(d, ks) { return d.keys().hasOnly(ks) && d.keys().hasAll(ks); }
+
+    function validPub(d) {
+      return exact(d, ['title', 'guide', 'joinOpen', 'submitOpen'])
+        && str(d.title, 1, 40) && str(d.guide, 0, 120) && d.joinOpen is bool && d.submitOpen is bool;
+    }
+
+    // ───── 送信項目の検証（これ以外の項目・型・長さは拒否） ─────
+    function evOk(ev, i) {
+      return ev.size() <= i || (ev[i] is map && exact(ev[i], ['axis', 'text']) && ev[i].axis in ['op', 'check', 'range'] && str(ev[i].text, 1, 100));
+    }
+    function bin(a, k) { return !(k in a) || a[k] in [0, 1]; }
+    function actsOk(a) {
+      return a is map
+        && a.keys().hasOnly(['keypad', 'askSource', 'askWhen', 'map', 'site', 'doorStop', 'panel', 'admin', 'proxy', 'sos', 'scam'])
+        && (!('keypad' in a) || a.keypad in ['self', 'mi'])
+        && (!('panel' in a) || a.panel in ['self', 'mi'])
+        && (!('admin' in a) || a.admin in ['self', 'mi'])
+        && (!('scam' in a) || a.scam in ['checked', 'ignored', 'replied', 'leaked'])
+        && bin(a, 'askSource') && bin(a, 'askWhen') && bin(a, 'map') && bin(a, 'site') && bin(a, 'doorStop') && bin(a, 'proxy') && bin(a, 'sos');
+    }
+    function validSub(d, pid) {
+      return exact(d, ['uid', 'pid', 'label', 'type', 'thin', 'ev', 'safe', 'acts', 'pre', 'post', 'r1', 'r2', 'ending', 'old', 'v', 'at'])
+        && d.uid == me() && d.pid == pid
+        && str(d.label, 1, 20)
+        && d.type in ['SCW', 'SCD', 'SGW', 'SGD', 'MCW', 'MCD', 'MGW', 'MGD']
+        && d.thin is list && d.thin.size() <= 3 && d.thin.hasOnly(['op', 'check', 'range'])
+        && d.ev is list && d.ev.size() <= 3 && evOk(d.ev, 0) && evOk(d.ev, 1) && evOk(d.ev, 2)
+        && d.safe is map && exact(d.safe, ['lean', 'text']) && d.safe.lean in ['', 'S', 'B', 'both'] && str(d.safe.text, 0, 100)
+        && actsOk(d.acts)
+        && d.pre in ['', 'a', 'b', 'c'] && d.post in ['', 'a', 'b', 'c']
+        && str(d.r1, 0, 300) && str(d.r2, 0, 300)
+        && d.ending in ['true', 'trueSos', 'secret', 'fake', 'be1', 'be2', 'be3']
+        && d.old is bool
+        && d.v is map && exact(d.v, ['game', 'quiz', 'judge']) && str(d.v.game, 1, 20) && str(d.v.quiz, 1, 20) && d.v.judge is int
+        && d.at == request.time;
+    }
+    // 参加済み（members の uid が本人）で、提出の受付中のときだけ送れる。参加受付の状態は見ない。
+    function canSubmit(cid, pid) {
+      return authed() && pidOk(pid)
+        && exists(memberPath(cid, pid)) && get(memberPath(cid, pid)).data.uid == me()
+        && exists(pubPath(cid)) && get(pubPath(cid)).data.submitOpen == true
+        && validSub(request.resource.data, pid);
+    }
+
+    match /pub/{cid} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if teacher() && codeOk(cid) && validPub(request.resource.data)
+        && getAfter(classPath(cid)).data.ownerUid == me();
+      allow update: if ownerOf(cid) && validPub(request.resource.data);
+      allow delete: if ownerOf(cid);
+    }
+
+    match /classes/{cid} {
+      allow get, list: if teacher() && resource.data.ownerUid == me();
+      allow create: if teacher() && codeOk(cid)
+        && exact(request.resource.data, ['ownerUid', 'createdAt'])
+        && request.resource.data.ownerUid == me() && request.resource.data.createdAt == request.time
+        && existsAfter(pubPath(cid));
+      allow update: if false;
+      allow delete: if teacher() && resource.data.ownerUid == me();
+
+      match /members/{pid} {
+        allow get: if authed() && (resource == null || resource.data.uid == me() || ownerOf(cid));
+        allow list: if ownerOf(cid);
+        allow create: if authed() && pidOk(pid)
+          && exact(request.resource.data, ['uid', 'at']) && request.resource.data.uid == me() && request.resource.data.at == request.time
+          && exists(pubPath(cid)) && get(pubPath(cid)).data.joinOpen == true;
+        allow update: if false;
+        allow delete: if ownerOf(cid);
+      }
+
+      match /subs/{pid} {
+        allow get: if authed() && (resource == null || resource.data.uid == me() || ownerOf(cid));
+        allow list: if ownerOf(cid);
+        allow create: if canSubmit(cid, pid);
+        allow update: if canSubmit(cid, pid) && resource.data.uid == me();
+        allow delete: if authed() && (resource.data.uid == me() || ownerOf(cid));
+      }
+    }
+  }
+}

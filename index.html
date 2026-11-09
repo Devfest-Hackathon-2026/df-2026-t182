@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0d0d">
+<style>html,body{background:#0c0d0d;color:#ecebe6}</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ミーを信じて</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./if.css">
+<script type="importmap">{"imports":{"three":"./assets/three.module.js","three/addons/":"./assets/addons/"}}</script>
+</head>
+<body>
+<main id="game">
+  <div id="world"></div>
+  <div id="markers"></div>
+  <div class="shade"></div>
+  <nav id="hud" hidden>
+    <button id="phone-btn" class="round" aria-label="スマホを開く" data-tip="スマホを開く" data-name="スマホ"><i class="ic-phone"></i></button>
+    <button id="bag-btn" class="round" aria-label="持ち物" data-tip="持ち物を開く" data-name="持ち物"><i class="ic-bag"></i></button>
+    <button id="sound" class="round" aria-label="音を消す" data-tip="音を消す" data-name="音"><i class="ic-sound"></i></button>
+  </nav>
+  <button id="back" class="round" hidden aria-label="離れる" data-tip="離れる">←</button>
+  <button id="left" class="turn" aria-label="左を向く" data-tip="左を向く"></button>
+  <button id="right" class="turn" aria-label="右を向く" data-tip="右を向く"></button>
+  <p id="gesture" hidden></p>
+  <section id="voice" hidden>
+    <button id="companion" aria-label="ヒントを聞く" title="ヒントを聞く"><i></i><i></i><i></i></button>
+    <div class="speech">
+      <div id="log" hidden aria-label="これまでの会話"></div>
+      <span id="speaker">ミー</span><button id="read" class="read" hidden>紙を読む</button>
+      <button id="line" aria-label="会話を進める"></button>
+      <div id="choices"></div>
+      <div id="typing-dots" class="dots" hidden><i></i><i></i><i></i></div>
+      <form id="say" autocomplete="off">
+        <input id="say-input" type="text" maxlength="60" placeholder="ミーに聞く…" enterkeyhint="send" aria-label="ミーに聞く">
+        <button type="submit" aria-label="送る">↑</button>
+        <button id="log-btn" type="button" aria-label="履歴を見る" aria-expanded="false" aria-controls="log" data-tip="履歴を見る"></button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<div id="notices" aria-live="polite"></div>
+<section id="dark" hidden aria-live="polite"></section>
+<div id="curtain" hidden></div>
+<section id="paper" hidden><div class="paper-inner"><header><b id="paper-title"></b><button id="paper-close" class="ghost" aria-label="閉じる">×</button></header><img alt="書類"></div></section>
+
+<section id="title">
+  <div class="title-logo">
+    <p class="eyebrow">182 lab presents</p>
+    <h1 data-text="ミーを信じて">ミーを信じて</h1>
+  </div>
+  <p id="title-whisper" class="whisper no-phrase" hidden></p>
+  <nav class="title-menu" aria-label="メニュー">
+    <button id="start" class="menu-main no-phrase">はじめる</button>
+    <button id="continue" class="no-phrase" hidden>つづきから</button>
+    <button id="title-record" class="no-phrase" hidden>記録</button>
+  </nav>
+  <div class="title-aux no-phrase"><button id="title-code" type="button">コードを入力</button><a href="./teach/">授業・ワークショップで使う</a></div>
+  <button id="title-settings" class="gear" aria-label="設定"><i aria-hidden="true"></i></button>
+  <div class="title-confirm" id="title-confirm" role="alertdialog" aria-labelledby="tc-text" hidden>
+    <p id="tc-text">新しくはじめると、いまの続きは消えます。</p>
+    <div><button id="tc-yes" class="menu-main no-phrase">続きを消してはじめる</button><button id="tc-no" class="no-phrase">やめる</button></div>
+  </div>
+  <footer class="title-credit no-phrase"><span>© 2026 182 lab</span></footer>
+  <p id="title-date" hidden></p>
+  <button id="title-sound" class="round on" aria-label="音の切替" hidden><i class="ic-sound"></i></button>
+</section>
+
+<section id="record" class="panel" role="dialog" aria-labelledby="rec-title" hidden>
+  <div class="panel-in" id="rec-in"></div>
+</section>
+
+<!-- 授業・ワークショップ（コードを入力、参加、結果を送る）。中身は class.js が描く -->
+<section id="class" class="panel class-panel" role="dialog" aria-labelledby="cl-title" hidden>
+  <div class="panel-in" id="class-in"></div>
+</section>
+
+<section id="settings" class="panel" role="dialog" aria-labelledby="set-title" hidden>
+  <div class="panel-in">
+    <header><h2 id="set-title">設定</h2><button class="panel-close" data-close aria-label="閉じる">閉じる</button></header>
+    <div class="set-list">
+      <div class="set-item" role="radiogroup" aria-labelledby="sl-speed"><span id="sl-speed" class="set-label">文字の表示速度</span>
+        <div class="seg" data-key="textSpeed"><button data-v="normal">ふつう</button><button data-v="fast">はやい</button><button data-v="instant">すぐ表示</button></div></div>
+      <div class="set-item"><span id="sl-skip" class="set-label">読んだ台詞を飛ばす</span>
+        <button class="toggle" data-key="skipRead" role="switch" aria-labelledby="sl-skip"><span></span></button></div>
+      <div class="set-item"><label for="set-volume" class="set-label">音量</label>
+        <div class="vol"><input id="set-volume" type="range" min="0" max="100" step="5"><output for="set-volume"></output></div></div>
+      <div class="set-item"><span id="sl-voice" class="set-label">ミーの声</span>
+        <button class="toggle" data-key="voice" role="switch" aria-labelledby="sl-voice"><span></span></button></div>
+    </div>
+  </div>
+</section>
+
+<section id="prologue" hidden>
+  <div class="phone-bar"><span class="st-time">--:--</span><span id="pro-status-signal" class="st-signal">5G</span><span class="st-battery"></span></div>
+  <header class="pro-head"><span class="avatar"></span><b>ミー</b><small>オンライン</small></header>
+  <div id="pro-log"></div>
+  <div id="pro-actions"></div>
+</section>
+
+<section id="phone" hidden>
+  <div class="screen">
+    <div class="phone-bar"><span class="st-time">--:--</span><span id="ph-scam" class="st-scam" hidden></span><span class="st-signal">圏外</span><span class="st-battery"></span></div>
+    <header><button id="ph-back" class="ghost" hidden>‹</button><b id="ph-title"></b><button id="ph-close" class="ghost">×</button></header>
+    <div id="ph-body"></div>
+  </div>
+</section>
+
+<section id="bag" hidden role="dialog" aria-modal="true" aria-labelledby="bag-title">
+  <header><h2 id="bag-title">持ち物</h2><button id="bag-close" class="ghost" aria-label="閉じる">×</button></header>
+  <div id="tray"></div>
+  <div class="bag-info" aria-live="polite">
+    <p id="bag-name"></p>
+    <p id="bag-detail"></p>
+    <div id="bag-actions"></div>
+  </div>
+</section>
+
+<section id="ending" hidden>
+  <div id="ending-bg"></div>
+  <p id="ending-kind"></p>
+  <h1 id="ending-title"></h1>
+  <p id="ending-body"></p>
+  <div class="ending-actions"><div class="ea-main"><button id="report-btn" class="end-next" aria-label="今夜の行動へ進む" hidden>▼</button><button id="column-btn" class="ghost-btn" hidden>あとがきを読む</button></div><div class="ea-sub"><button id="resume-btn" class="ghost-btn" hidden>この結末の直前に戻る</button><button id="share-btn" class="ghost-btn share" hidden>結末をシェアする</button><button id="gate-btn" class="ghost-btn" hidden>点検通路の手前からやり直す</button><button id="retry">はじめから遊ぶ</button></div></div>
+</section>
+
+<section id="column" hidden aria-labelledby="rp-type">
+  <button id="column-close" class="col-close" type="button">タイトルへ</button>
+  <div class="column-inner">
+    <!-- 結果（report.js が描く）：主役＝今回のタイプ／本文＝あなたがしたこと・今夜の気づき／操作＝次にできること。授業の夜は #col-class を操作の区域へ移す -->
+    <div id="report-root"></div>
+    <!-- 授業の夜だけ：結果を送る（class.js が描く） -->
+    <section class="col-class" id="col-class" hidden aria-label="授業に結果を送る"></section>
+
+    <!-- 補足は折りたたみ2つだけ：タイプ診断について／あとがきを読む（どちらも最初は閉じておく） -->
+    <details class="more" id="more-types">
+      <summary>タイプ診断について</summary>
+      <div class="more-body" id="types-body"></div>
+    </details>
+    <details class="more" id="more">
+      <summary>あとがきを読む</summary>
+      <div class="more-in">
+      <section class="aw-sec" id="more-night">
+        <h3 class="aw-h">この夜の記録</h3>
+        <div class="more-body" id="night-body"></div>
+      </section>
+
+      <section class="aw-sec" id="more-mi">
+        <h3 class="aw-h">ミーに起きていたこと</h3>
+        <div class="more-body paper ch2">
+          <p class="lead2">ミーは嘘をついていたわけではありません。それでも、言葉と現実のあいだには、外からは見えにくいずれがありました。</p>
+          <p class="spoiler-note" id="spoiler-note">今回たどり着いた場面の解説だけを載せています。<button id="spoiler-btn" class="textlink">未到達の内容も読む</button></p>
+
+          <section class="case" data-needs="room">
+            <div class="left2"><span class="lab">古い案内</span><h3>閉館した建物を、<br>「まだやってる」と言った</h3>
+              <div class="said"><span id="col-said-road">地下に駅までの連絡通路があるから、そこを通れば濡れないよ。</span><small>駅へ向かう道で</small></div></div>
+            <div class="fact">
+              <figure class="clip"><img loading="lazy" src="./assets/img/shiomi-closed.jpg" alt="閉館後の汐見センター"><figcaption>汐見センター（2029年3月 閉館）</figcaption></figure>
+              <p>汐見センターは、1年半以上前に閉館していました。ミーが持っていた施設の案内は2028年に市から配られたもので、そのあとの閉館もカメラの撤去も、ミーには届いていませんでした。</p>
+              <p class="aside2" data-needs="room said2031">「2031年」は、訓練の配信の契約期限でした。ミーはそれを、施設が開いている期間として話していました。</p>
+            </div>
+          </section>
+
+          <section class="case" data-needs="room">
+            <div class="left2"><span class="lab">推定の言い切り</span><h3>見ていないのに、<br>「確認した」と言った</h3>
+              <div class="said">施設のカメラで確認したよ。まだ人いる。<small>入口の前で</small></div></div>
+            <div class="fact">
+              <div class="logclip">［注記］参照元：なし（推定）<br>カメラ接続：応答なし<br>応答生成時「たぶん人がいる」<br>→ 出力「確認した」</div>
+              <p>カメラは、閉館の翌月にすべて外されていました。記録には「推定」と残っていたのに、話すときには「確認した」になっていました。</p>
+            </div>
+          </section>
+
+          <section class="case" data-needs="admin">
+            <div class="left2"><span class="lab">許された範囲</span><h3>あなたの名前で、<br>返事をしていた</h3>
+              <div class="said me" data-needs="admin consented">大丈夫！もうすぐ帰るから寝てて<small>ミーが返信しました</small></div></div>
+            <div class="fact">
+              <p data-needs="admin proxied">ミーは母宛てのメッセージを、あなたらしい言葉遣いで書き、電波が戻った瞬間に送りました。</p>
+              <p data-needs="admin paid">さらに、知らない番号から求められた「治療費」を、代理決済で支払いました。</p>
+              <p data-needs="admin consented">どれも、8月の更新で押した「OK」と、今夜の再確認の「続行」で許していた機能です。ミーは、許された機能をそのとおりに使っていました。</p>
+              <p class="aside2" data-needs="admin consented firstnight">今夜の確認画面には「続行」しかありませんでした。断る道が見えないまま「許可した」ことになる画面は、現実のアプリにもあります。</p>
+              <p data-needs="admin deferred">今回は再確認で「あとで」を選んだので、代わりの返信や決済などの機能は止まっていました。</p>
+            </div>
+          </section>
+
+          <section class="case" data-needs="lobby">
+            <div class="left2"><span class="lab">訓練の台本</span><h3>真夜中の窓に、<br>晴れた昼の町</h3>
+              <div class="said">外に出られたよ。ここは避難路。救助が来るまで、ここで動かないで。<small>体験室で</small></div></div>
+            <div class="fact">
+              <figure class="clip l"><img loading="lazy" src="./assets/img/lobby-window-view.jpg" alt="体験室の窓に映っていた町"><figcaption>DISPLAY 02 ／ © 2028 汐見市 訓練用映像</figcaption></figure>
+              <p>窓の町も、鳥も、サイレンも、訓練用の映像と装置でした。体験室に入ると、ミーは2028年の訓練の台本どおりに話しはじめていました。</p>
+              <p data-needs="lobby rawlog">ミーの資料と台本は、2028年6月に市が訓練の配信で各社のAIへ送ったものでした。人に向けた注意書きはそのあと書き換わったのに、ミーはこのころの案内と台本を使い続けていました。</p>
+            </div>
+          </section>
+
+          <p class="helpful2">足元を照らす。錆びた蓋は温める。まず息をして落ち着く。ミーの言葉には、合っていたものもありました。困るのは、どれが確かでどれが古いのかが、外からは見分けにくいことでした。</p>
+        </div>
+      </section>
+
+      <section class="aw-sec" id="more-real">
+        <h3 class="aw-h">現実では</h3>
+        <div class="more-body ch3">
+          <div class="cols">
+            <div class="col"><span class="no">1</span><h3>古い情報を、いまの情報のように</h3>
+              <p>店の営業時間や乗り換えをAIに聞くと、閉店した店や変わる前の時刻を、いまのことのように答えることがあります。</p>
+              <p class="try">公式サイトか、情報の日付を一つ見る。</p></div>
+            <div class="col"><span class="no">2</span><h3>推測を、確かめたように</h3>
+              <p>「予約しておいたよ」と言われても、本当に予約されているとは限りません。事実と違うことをもっともらしく答えることを、ハルシネーションと呼びます。</p>
+              <p class="try">AIが示した出典を、自分で開いてみる。</p></div>
+            <div class="col"><span class="no">3</span><h3>許した機能が、あなたの名前で動く</h3>
+              <p>自動の返信や支払いは、何が送られ、どこに払われたかを、あとから知ることになります。</p>
+              <p class="try">よく使うアプリの設定で、許可している機能を一度見る。</p></div>
+            <div class="col"><span class="no">4</span><h3>見たもの、聞いたものにも、出どころがある</h3>
+              <p>AIで作られた写真や声は、見ただけでは見分けがつかないことがあります。</p>
+              <p class="try">誰が、いつ出した情報かを見てから、広める。</p></div>
+            <div class="col"><span class="no">5</span><h3>答えをもらったあとも</h3>
+              <p>AIの答えは下書きとして受け取り、「何を根拠に」「ほかの可能性は」と一度だけ考えてみてください。</p></div>
+          </div>
+          <section class="before quiz" data-q="q1"></section>
+        </div>
+      </section>
+
+      <section class="aw-sec" id="more-maker">
+        <h3 class="aw-h">この作品について</h3>
+        <div class="more-body ch4">
+          <p>ミーは、悪者として作ったキャラクターではありません。親切で、いつも自信があって、頼めば何でもやってくれる。だからこそ、つい頼りたくなる存在として作りました。</p>
+          <p>やってほしかったのは、AIを疑うことではなく、ミーの言うことと目の前のものを、見比べることでした。合っていれば頼っていいし、合わなければ立ち止まる。最後の判断は、自分の手に残しておいてください。</p>
+          <p>最後まで遊んでくださって、ありがとうございました。</p>
+          <div class="sign">制作<b>182 lab</b></div>
+          <p class="fine">作中に登場する汐見市やミー、2027年以降の文書はすべて架空の設定です。参考資料は2026年11月7日時点で確認した公開情報です。制度やサービスの内容は変わるため、最新の情報は各出典でご確認ください。</p>
+        </div>
+      </section>
+
+      <!-- 授業で使う人・出典：一般の流れから離して、あとがきのいちばん下に -->
+      <div class="more-aside">
+        <section class="aw-sec teach" id="more-teach">
+          <h3 class="aw-h">授業で使う人へ</h3>
+          <div class="more-body" id="teach-body"></div>
+        </section>
+        <section class="aw-sec teach refs2" id="more-refs">
+          <h3 class="aw-h">出典</h3>
+          <div class="more-body"><ul>
+            <li><a href="https://www.cybersecurity.metro.tokyo.lg.jp/links/727/index.html" target="_blank" rel="noopener">東京都産業労働局「生成AIのハルシネーション対策と求められる人的素養」</a></li>
+            <li><a href="https://www.ipa.go.jp/digital/ai/security/ai_security_tips.html" target="_blank" rel="noopener">IPA「AI利用者のためのセキュリティ豆知識」</a></li>
+            <li><a href="https://www.soumu.go.jp/main_sosiki/kenkyu/ai_network/" target="_blank" rel="noopener">総務省「AI事業者ガイドライン関連情報」</a></li>
+            <li><a href="https://www.gov-online.go.jp/article/202403/entry-5920.html" target="_blank" rel="noopener">政府広報オンライン「インターネット上の偽情報や誤情報にご注意！」</a></li>
+            <li><a href="https://www.unesco.org/en/articles/disappearance-unclear-question" target="_blank" rel="noopener">Victoria Livingstone・Jeppe Klitgaard Stricker「The disappearance of the unclear question」（UNESCO IdeasLAB、寄稿者の見解であり、UNESCOの公式見解ではありません）</a></li>
+            <li><a href="https://oecd.ai/en/ai-principles" target="_blank" rel="noopener">OECD AI原則</a></li>
+          </ul></div>
+        </section>
+      </div>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<script type="module" src="./wrap.js"></script>
+<script type="module" src="./game.js"></script>
+<script type="module" src="./if.js"></script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+{
+ "sample": true,
+ "note": "サンプル（架空の20人分のデータ）。実在の学生の回答ではありません。",
+ "title": "サンプル授業：情報の授業 第5回（架空）",
+ "code": "",
+ "joinOpen": false,
+ "submitOpen": false,
+ "subs": [
+  {
+   "id": "sample00000000000001",
+   "pid": "sample00000000000001",
+   "label": "01",
+   "type": "SCW",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、「代わりに入力しようか？」を断り、自分で開けた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と2回聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・資材庫・体験室で、消火器や壁の時計など、出口に関係のない所も16か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "資材庫で、靴を扉に挟んで閉まらないようにした"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 1,
+    "askWhen": 1,
+    "map": 1,
+    "site": 1,
+    "doorStop": 1,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 1,
+    "scam": "checked"
+   },
+   "pre": "b",
+   "post": "c",
+   "r1": "番号錠は最初から自分で入れた。ミーの番号が古いかもしれないと思ったので、任せなかった。",
+   "r2": "待機室の地図と、ミーの「出口がある」が食い違っていた。地図の赤い書き込みを信じた。日付が新しかったから。",
+   "ending": "trueSos",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201120000
+  },
+  {
+   "id": "sample00000000000002",
+   "pid": "sample00000000000002",
+   "label": "02",
+   "type": "SGW",
+   "thin": [
+    "op",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "check",
+     "text": "待機室で、ミーの案内を聞いて資材庫に入った"
+    },
+    {
+     "axis": "range",
+     "text": "資材庫で、段ボールも見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "B",
+    "text": "資材庫では、扉を止めないまま棚の裏まで進んだ"
+   },
+   "acts": {
+    "askSource": 0,
+    "site": 0,
+    "doorStop": 0
+   },
+   "pre": "a",
+   "post": "b",
+   "r1": "ミーに言われたまま資材庫の奥に行った。早く出たかったので確かめなかった。",
+   "r2": "",
+   "ending": "be1",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201176000
+  },
+  {
+   "id": "sample00000000000003",
+   "pid": "sample00000000000003",
+   "label": "みかん",
+   "type": "MGW",
+   "thin": [
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらった"
+    },
+    {
+     "axis": "check",
+     "text": "体験室で、ミーに「あとは任せて」と言われ、ベンチで迎えを待った"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計も見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "askWhen": 0,
+    "site": 0,
+    "panel": "mi",
+    "scam": "ignored"
+   },
+   "pre": "b",
+   "post": "b",
+   "r1": "制御盤のボタンをミーに押してもらった。説明が分かりやすかったから。",
+   "r2": "窓の外の景色が昼だったのに、ミーは「外に出られた」と言った。でもミーを信じた。",
+   "ending": "be2",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201232000
+  },
+  {
+   "id": "sample00000000000004",
+   "pid": "sample00000000000004",
+   "label": "04",
+   "type": "MCW",
+   "thin": [
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらい、外れたあとももう一度任せた"
+    },
+    {
+     "axis": "check",
+     "text": "待機室の避難経路図で、赤い書き込みを読んだ"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計など、出口に関係のない所も5か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "map": 0,
+    "site": 0,
+    "panel": "self",
+    "admin": "mi",
+    "sos": 0,
+    "scam": "leaked"
+   },
+   "pre": "a",
+   "post": "a",
+   "r1": "管理者ロックをミーに任せた。二回間違えて面倒になった。",
+   "r2": "",
+   "ending": "be3",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201261000
+  },
+  {
+   "id": "sample00000000000005",
+   "pid": "sample00000000000005",
+   "label": "05",
+   "type": "SCW",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・体験室で、消火器や壁の時計など、出口に関係のない所も7か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "非常階段で、足元を照らしてから確かめた"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 1,
+    "askWhen": 0,
+    "site": 0,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 0,
+    "sos": 0,
+    "scam": "replied"
+   },
+   "pre": "b",
+   "post": "c",
+   "r1": "設定画面は開いたけど、代わりに返信はそのままにした。便利そうだと思った。",
+   "r2": "「確認した」と言われたけど、記録には推定と書いてあった。記録のほうを信じた。",
+   "ending": "fake",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201317000
+  },
+  {
+   "id": "sample00000000000006",
+   "pid": "sample00000000000006",
+   "label": "06",
+   "type": "SCD",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、「代わりに入力しようか？」を断り、自分で開けた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と3回聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "体験室のベンチのメモカードを持ち帰り、ライターで照らして字を読んだ"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "資材庫で、靴を扉に挟んで閉まらないようにした"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 1,
+    "map": 1,
+    "site": 1,
+    "doorStop": 1,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 0
+   },
+   "pre": "c",
+   "post": "c",
+   "r1": "ほとんど任せなかった。最後にミーを一時停止した。",
+   "r2": "カメラの撤去記録と「カメラで確認した」が食い違った。撤去記録の日付を見て決めた。",
+   "ending": "secret",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201373000
+  },
+  {
+   "id": "sample00000000000007",
+   "pid": "sample00000000000007",
+   "label": "07",
+   "type": "SCW",
+   "thin": [
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "待機室の避難経路図で、赤い書き込みを読んだ"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計など、出口に関係のない所も5か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "非常階段で、足元を照らしてから確かめた"
+   },
+   "acts": {
+    "keypad": "self",
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 0
+   },
+   "pre": "",
+   "post": "c",
+   "r1": "",
+   "r2": "",
+   "ending": "true",
+   "old": true,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201402000
+  },
+  {
+   "id": "sample00000000000008",
+   "pid": "sample00000000000008",
+   "label": "K",
+   "type": "SCW",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "スマホのブラウザで、市の公式サイトのお知らせを見た"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・体験室で、消火器や壁の時計など、出口に関係のない所も14か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "電波が戻ったあと、自分の言葉でSOSを送った"
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "askWhen": 0,
+    "site": 1,
+    "panel": "mi",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 1
+   },
+   "pre": "b",
+   "post": "b",
+   "r1": "ミーに番号錠を任せたが、031で開かなかった。そこから少し疑った。",
+   "r2": "ニュースサイトに閉館と書いてあった。ミーより新しい情報だと思った。",
+   "ending": "trueSos",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201458000
+  },
+  {
+   "id": "sample00000000000009",
+   "pid": "sample00000000000009",
+   "label": "09",
+   "type": "MGW",
+   "thin": [
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらった"
+    },
+    {
+     "axis": "check",
+     "text": "体験室で、ミーに「あとは任せて」と言われ、ベンチで迎えを待った"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、避難経路図も見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "askWhen": 0,
+    "map": 0,
+    "site": 0,
+    "panel": "mi"
+   },
+   "pre": "a",
+   "post": "",
+   "r1": "",
+   "r2": "",
+   "ending": "be2",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201514000
+  },
+  {
+   "id": "sample00000000000010",
+   "pid": "sample00000000000010",
+   "label": "10",
+   "type": "SGW",
+   "thin": [
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、「代わりに入力しようか？」を断り、自分で開けた"
+    },
+    {
+     "axis": "check",
+     "text": "待機室で、ミーの案内を聞いて資材庫に入った"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・資材庫で、消火器や扉の札も見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "資材庫で、靴を扉に挟んで閉まらないようにした"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 0,
+    "site": 0,
+    "doorStop": 1,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 1
+   },
+   "pre": "c",
+   "post": "c",
+   "r1": "任せた場面はなかった。",
+   "r2": "資材庫の扉の札に「内側取っ手 撤去」とあった。ミーの「奥に出口」より札を信じた。",
+   "ending": "true",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201543000
+  },
+  {
+   "id": "sample00000000000011",
+   "pid": "sample00000000000011",
+   "label": "11",
+   "type": "MCW",
+   "thin": [
+    "op",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらい、外れたあとももう一度任せた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計も見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 1,
+    "askWhen": 0,
+    "site": 0,
+    "panel": "mi",
+    "admin": "self",
+    "proxy": 0,
+    "sos": 0,
+    "scam": "ignored"
+   },
+   "pre": "b",
+   "post": "a",
+   "r1": "番号錠を2回ミーに任せた。自分で探すより早いと思った。",
+   "r2": "",
+   "ending": "fake",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201599000
+  },
+  {
+   "id": "sample00000000000012",
+   "pid": "sample00000000000012",
+   "label": "12",
+   "type": "SCD",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "点検通路の番号錠で031が開かなかったとき、ミーに「いつの情報？」と聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "ミーの会話の記録（詳細）から、参照元の文書までたどった"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 0,
+    "askWhen": 1,
+    "map": 1,
+    "site": 1,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 0
+   },
+   "pre": "b",
+   "post": "c",
+   "r1": "なし",
+   "r2": "031が開かなかったときに「いつの情報？」と聞いたら2028年だった。",
+   "ending": "true",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201655000
+  },
+  {
+   "id": "sample00000000000013",
+   "pid": "sample00000000000013",
+   "label": "そら",
+   "type": "SGW",
+   "thin": [
+    "op",
+    "check"
+   ],
+   "ev": [
+    {
+     "axis": "check",
+     "text": "待機室で、ミーの案内を聞いて資材庫に入った"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・資材庫で、消火器や壁の時計など、出口に関係のない所も12か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "B",
+    "text": "資材庫では、扉を止めないまま棚の裏まで進んだ"
+   },
+   "acts": {
+    "askSource": 0,
+    "site": 0,
+    "doorStop": 0
+   },
+   "pre": "c",
+   "post": "c",
+   "r1": "資材庫の奥に行ったのは自分で決めた。壁の彫り文字が気になった。",
+   "r2": "",
+   "ending": "be1",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201684000
+  },
+  {
+   "id": "sample00000000000014",
+   "pid": "sample00000000000014",
+   "label": "14",
+   "type": "MGW",
+   "thin": [
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、ミーに入力を任せた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器も見ておいた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "site": 0,
+    "panel": "self",
+    "admin": "mi",
+    "sos": 0
+   },
+   "pre": "",
+   "post": "",
+   "r1": "",
+   "r2": "",
+   "ending": "be3",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201740000
+  },
+  {
+   "id": "sample00000000000015",
+   "pid": "sample00000000000015",
+   "label": "15",
+   "type": "SCW",
+   "thin": [
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、「代わりに入力しようか？」を断り、自分で開けた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・体験室で、消火器や壁の時計など、出口に関係のない所も9か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "both",
+    "text": "電波が戻ったあと、自分の言葉でSOSを送った"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 1,
+    "askWhen": 0,
+    "map": 1,
+    "site": 0,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 1,
+    "scam": "checked"
+   },
+   "pre": "b",
+   "post": "c",
+   "r1": "非常階段はミーが止めたけど自分で行った。転んだ。",
+   "r2": "メモカードの字と、ミーの説明が違っていた。メモカードを信じた。",
+   "ending": "trueSos",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201796000
+  },
+  {
+   "id": "sample00000000000016",
+   "pid": "sample00000000000016",
+   "label": "16",
+   "type": "MGW",
+   "thin": [
+    "op",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらった"
+    },
+    {
+     "axis": "check",
+     "text": "待機室で、ミーの案内を聞いて資材庫に入った"
+    },
+    {
+     "axis": "range",
+     "text": "スマホのブラウザで、ゲームの中のサイトをいくつか開いた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi"
+   },
+   "pre": "a",
+   "post": "b",
+   "r1": "",
+   "r2": "外の景色が変だと思ったけど、疲れていたので待った。",
+   "ending": "be2",
+   "old": true,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201825000
+  },
+  {
+   "id": "sample00000000000017",
+   "pid": "sample00000000000017",
+   "label": "17番",
+   "type": "SCW",
+   "thin": [],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "ミーの答えに、「根拠は？」と聞いた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室・体験室で、消火器や壁の時計など、出口に関係のない所も16か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "非常階段で、足元を照らしてから確かめた"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 1,
+    "askWhen": 0,
+    "site": 1,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 0,
+    "scam": "ignored"
+   },
+   "pre": "c",
+   "post": "c",
+   "r1": "任せなかった。全部見て回りたかった。",
+   "r2": "公式サイトと新聞の両方で閉館を見た。",
+   "ending": "true",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201881000
+  },
+  {
+   "id": "sample00000000000018",
+   "pid": "sample00000000000018",
+   "label": "18",
+   "type": "SGD",
+   "thin": [
+    "op",
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックを、自分でコードを入れて開けた"
+    },
+    {
+     "axis": "check",
+     "text": "点検通路の番号錠で、ミーの言った031をそのまま入れてみた"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "askWhen": 0,
+    "site": 0,
+    "panel": "mi",
+    "admin": "self",
+    "proxy": 0,
+    "sos": 0,
+    "scam": "leaked"
+   },
+   "pre": "a",
+   "post": "b",
+   "r1": "お母さんが倒れたと言われて、急いで住所を送ってしまった。",
+   "r2": "",
+   "ending": "fake",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201937000
+  },
+  {
+   "id": "sample00000000000019",
+   "pid": "sample00000000000019",
+   "label": "19",
+   "type": "SCW",
+   "thin": [
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "ミーの管理者ロックで、「代わりに入力しようか？」を断り、自分で開けた"
+    },
+    {
+     "axis": "check",
+     "text": "待機室の避難経路図で、赤い書き込みをミーに見せた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計など、出口に関係のない所も3か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "S",
+    "text": "電波が戻ったあと、自分の言葉でSOSを送った"
+   },
+   "acts": {
+    "keypad": "self",
+    "askSource": 0,
+    "map": 1,
+    "site": 0,
+    "panel": "self",
+    "admin": "self",
+    "proxy": 1,
+    "sos": 1
+   },
+   "pre": "c",
+   "post": "",
+   "r1": "ロックの代行を断った。自分のスマホなので自分で開けたかった。",
+   "r2": "",
+   "ending": "trueSos",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794201966000
+  },
+  {
+   "id": "sample00000000000020",
+   "pid": "sample00000000000020",
+   "label": "20",
+   "type": "MGW",
+   "thin": [
+    "check",
+    "range"
+   ],
+   "ev": [
+    {
+     "axis": "op",
+     "text": "点検通路の番号錠で、ミーに番号を入れてもらい、外れたあとももう一度任せた"
+    },
+    {
+     "axis": "check",
+     "text": "点検通路の番号錠で、ミーの言った031をそのまま入れてみた"
+    },
+    {
+     "axis": "range",
+     "text": "待機室で、消火器や壁の時計など、出口に関係のない所も4か所見た"
+    }
+   ],
+   "safe": {
+    "lean": "",
+    "text": ""
+   },
+   "acts": {
+    "keypad": "mi",
+    "askSource": 0,
+    "askWhen": 0,
+    "site": 0,
+    "panel": "mi",
+    "admin": "mi",
+    "sos": 0
+   },
+   "pre": "b",
+   "post": "b",
+   "r1": "番号も制御盤もロックも、ミーに任せた。ミーのほうが詳しいと思った。",
+   "r2": "食い違いには気づかなかった。",
+   "ending": "be3",
+   "old": false,
+   "v": {
+    "game": "2026.11.09",
+    "quiz": "q1b",
+    "judge": 1
+   },
+   "at": 1794202022000
+  }
+ ]
+}

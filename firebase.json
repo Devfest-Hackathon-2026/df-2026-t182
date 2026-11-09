@@ -1,0 +1,55 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "**/.*",
+      "**/*.md"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=3600"
+          }
+        ]
+      },
+      {
+        "source": "assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=86400"
+          }
+        ]
+      },
+      {
+        "source": "assets/voice/manifest.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=600"
+          }
+        ]
+      }
+    ],
+    "site": "miwoshinjite"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8085
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}

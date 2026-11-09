@@ -32,3 +32,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# ミーを信じて：Firebase と制作用のファイル
+.firebase/
+*-debug.log
