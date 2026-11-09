@@ -115,6 +115,14 @@ https://miwoshinjite.web.app/teach/?sample
 
 `firebase-config.js` に入っているのは、Web アプリ用の公開設定です。秘密の鍵ではありません。データは Firestore のルールで守っています。
 
+## 開発と品質保証
+
+- **自動テスト**：PR・`main` へのマージ・各ブランチへの push のたびに、GitHub Actions が回帰テストを実行します
+  （構文とファイル参照、秘密情報と誤デプロイの検出、集計とセキュリティルールの整合、公開物の内容、Firestore ルール）。
+  本番の Firebase には接続せず、Firestore Emulator で検査します。→ [docs/CI.md](docs/CI.md)
+- **コードを読む方へ**：設計の要点、システム構成図、技術の採用理由、テストで確かめている範囲と確かめていない範囲 → [docs/README.md](docs/README.md)
+- 手元でのテスト：`tools/ci/run.sh`（Node.js と Python 3）、`tools/ci/run.sh all`（＋ Java で Firestore ルール）
+
 ## ライセンスとクレジット
 
 - コード：[LICENSE](LICENSE)（MIT）
