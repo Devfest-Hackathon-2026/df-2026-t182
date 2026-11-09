@@ -2879,10 +2879,14 @@ function buildRoomScene(host, markerLayer, onInteract, onLook) {
   }
   { const mo = new MutationObserver(wake); const watch = () => { covers = coverEls(); for (const el of covers) mo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); };
     watch(); setInterval(() => { if (covers.length < coverIds.length) watch(); wake(); }, 1000); } // #mif is made later by if.js
+  const FINE_POINTER = matchMedia('(pointer: fine)').matches;
   function frame(time) {
     if (isCovered()) { covered = true; sleeping = true; return; }
     requestAnimationFrame(frame);
-    if (document.hidden || time - previousTime < 28) return;
+    // Idle (dust drifting) stays near 30 fps; while the view turns or something animates, draw up to 60 fps on a mouse screen
+    // (about 50 fps on touch) so turning does not judder.
+    const busy = animations.length > 0 || camera.position.distanceToSquared(cameraGoal) + look.distanceToSquared(lookGoal) > .00001;
+    if (document.hidden || time - previousTime < (busy ? (FINE_POINTER ? 15 : 19) : 28)) return;
     if (covered) { covered = false; dirty = true; previousTime = time - 33; }
     const dt = Math.min((time - previousTime) / 1000, .1);
     previousTime = time;

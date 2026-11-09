@@ -1242,10 +1242,10 @@ body.kb-open .turn,body.kb-open #gesture{visibility:hidden}
 @keyframes beckonl{50%{transform:translateX(-6px) rotate(45deg);border-color:#fff}}
 @keyframes beckonr{50%{transform:translateX(6px) rotate(-135deg);border-color:#fff}}
 .shade::after{content:"";position:absolute;inset:0;opacity:0;pointer-events:none}
-#game.look-l .shade::after{background:linear-gradient(90deg,rgba(236,235,230,.14),transparent 28%);animation:sweepl .55s ease-out}
-#game.look-r .shade::after{background:linear-gradient(270deg,rgba(236,235,230,.14),transparent 28%);animation:sweepr .55s ease-out}
-@keyframes sweepl{0%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(35%)}}
-@keyframes sweepr{0%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(-35%)}}
+#game.look-l .shade::after{background:linear-gradient(90deg,rgba(236,235,230,.1),rgba(236,235,230,.045) 16%,rgba(236,235,230,.012) 32%,rgba(236,235,230,0) 48%);animation:sweepl .55s ease-out}
+#game.look-r .shade::after{background:linear-gradient(270deg,rgba(236,235,230,.1),rgba(236,235,230,.045) 16%,rgba(236,235,230,.012) 32%,rgba(236,235,230,0) 48%);animation:sweepr .55s ease-out}
+@keyframes sweepl{0%{opacity:1}100%{opacity:0}}
+@keyframes sweepr{0%{opacity:1}100%{opacity:0}}
 #gesture{font-size:14px;letter-spacing:0;color:var(--ui-ink);text-shadow:0 1px 3px #000,0 0 10px #000c;padding:0 16px}
 /* 会話：ゴシック体ひとつ。地の文も同じ書体で、左の線と色だけで分ける */
 #voice{bottom:calc(10px + env(safe-area-inset-bottom));gap:12px}

@@ -13,6 +13,7 @@
 .cl-points{margin:0 0 24px;padding-left:1.2em}
 .cl-points li{margin:2px 0}
 .cl-form{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0 0 8px}
+.cl-form>.cl-btn.main{margin-top:16px;align-self:flex-start;min-width:240px}
 .cl-label{font-size:16px;font-weight:600;color:var(--ui-ink)}
 .cl-input{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:#0f1111;color:var(--ui-ink);font:inherit;font-size:16px}
 .cl-input:focus{outline:2px solid var(--ui-ink);outline-offset:1px}
