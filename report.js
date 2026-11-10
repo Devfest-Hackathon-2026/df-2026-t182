@@ -34,6 +34,12 @@ export const TYPES = {
 };
 export const ORDER = ['SCW', 'SCD', 'SGW', 'SGD', 'MCW', 'MCD', 'MGW', 'MGD'];
 const AX = { op: '操作', check: '確かめ方', range: '調べ方' };
+// ふりかえり票の「所見」：観点ごとに、タイプのキーの文字 → どちら側だったか（teach/stats.js の AXES と同じ言葉。stats.js がこのファイルを読むので、ここに置く）
+const AX_SIDES = [
+  ['op', '操作', { S: '自分で操作した', M: 'ミーに任せた' }],
+  ['check', '確かめ方', { C: '掲示や記録で確かめた', G: 'その場の案内で進んだ' }],
+  ['range', '調べ方', { W: '広く見て回った', D: '一つを深く追った' }]
+];
 
 // 待機室・資材庫・体験室の「調べなくても先へ進める」物。必須の物（note・pin・plate・panel など）は入れない。
 const ROOM_OPT = { extinguisher: '消火器', clock: '壁の時計', chair: '事務椅子', waitseats: '待合のいす', waitsign: '順番待ちの札', tube: '天井の蛍光灯', desklamp: '机のランプ', phone: '内線電話', tape: '貼り紙の跡', boxes: '段ボール', bucket: 'モップとバケツ', newspaper: '古い新聞', cans: '空き缶', wrappers: 'お菓子の袋', keyboard: 'キーボード', cigarettes: '吸い殻', poster: 'ポスター', camera: 'カメラの撤去記録', record: '巡回の記録表', contacts: '緊急連絡先', delay: '撤去延期の通知', map: '避難経路図', floor: '非常階段' };
@@ -211,25 +217,30 @@ export function renderReport(root, data, opts = {}) {
   const fixed = data.fixed && TYPES[data.fixed.key] ? data.fixed : fixResult(st, data.reached || {}, data.sources || {});
   const t = TYPES[fixed.key]; const bad = BAD.includes(st.ending);
 
-  // 主役：今回のタイプ（紙の切れ端に）
+  // 主役：1枚の「ふりかえり票」（タイプ → 所見：観点としたこと → 処方：今夜の気づき → ミーのひとこと）
   const res = h('div', 'rp-result' + (bad ? ' after-bad' : ''));
   const hero = h('div', 'rp-hero');
+  const head = h('p', 'rp-form'); head.append(h('span', 'rp-form-t', 'ふりかえり票'), h('span', 'rp-form-no', 'No. ' + fixed.key)); hero.append(head);
   hero.append(h('p', 'rp-kicker', '今回のタイプ'));
   const nm = h('h1', 'rp-type', t.name); nm.id = 'rp-type'; nm.tabIndex = -1;
   hero.append(nm, h('p', 'rp-line', t.line));
+
+  // 所見：3つの観点でどちら側だったか（タイプのキーの1文字ずつ）＋ あなたがしたこと
+  const seen = h('section', 'rp-sec'); seen.append(h('h2', 'rp-fl', '所見'));
+  const axes = h('ul', 'rp-axes');
+  AX_SIDES.forEach(([k, label, sides], i) => { const li = h('li', fixed.thin.includes(k) ? 'thin' : ''); li.append(h('span', 'ax', label), h('span', 'side', sides[fixed.key[i]])); axes.append(li); });
+  seen.append(axes);
+  if (fixed.shown.length) { const ul = h('ul', 'rp-did'); for (const e of fixed.shown) ul.append(h('li', '', e.text)); seen.append(ul); }
+  else seen.append(h('p', 'rp-tx', '操作や確かめ方の分かれ道に来る前に、結末に着きました。'));
+  const notes = []; if (fixed.thin.length) notes.push('記録に残った場面が少なく、傾きは小さめです。'); if (fixed.old) notes.push('前のバージョンで遊んだ夜なので、残っていない記録があります。');
+  if (notes.length) seen.append(h('p', 'rp-note', notes.join('')));
+  // 処方：今夜の気づき
+  const rx = h('section', 'rp-sec'); rx.append(h('h2', 'rp-fl', '処方'), h('p', 'rp-tonight', t.tonight));
+  hero.append(seen, rx);
   if (!bad) { const mi = h('p', 'rp-mi'); mi.append(h('span', 'who', 'ミー'), h('span', 'say', '「' + t.mi.replace(/\{name\}/g, data.name || 'あなた') + '」')); hero.append(mi); }
   // タイプのミー（assets/img/types/<キー>.webp。差し替えはファイルの置き換えだけ）。紙の上に立たせる。飾りなので alt は空
   const top = h('div', 'rp-top'); const art = h('img', 'rp-art'); art.src = `./assets/img/${t.art}.webp`; art.alt = ''; art.width = 480; art.height = 480; art.decoding = 'async'; top.append(art, hero);
-
-  // 本文：あなたがしたこと → 今夜の気づき
-  const body = h('div', 'rp-body');
-  body.append(h('h2', 'rp-h', 'プレイのふりかえり'));
-  if (fixed.shown.length) { const ul = h('ul', 'rp-did'); for (const e of fixed.shown) ul.append(h('li', '', e.text)); body.append(ul); }
-  else body.append(h('p', 'rp-tx', '操作や確かめ方の分かれ道に来る前に、結末に着きました。'));
-  const notes = []; if (fixed.thin.length) notes.push('記録に残った場面が少なく、傾きは小さめです。'); if (fixed.old) notes.push('前のバージョンで遊んだ夜なので、残っていない記録があります。');
-  if (notes.length) body.append(h('p', 'rp-note', notes.join('')));
-  body.append(h('h2', 'rp-h', '今夜の気づき'), h('p', 'rp-tonight', t.tonight));
-  res.append(top, body);
+  res.append(top);
   root.append(res, actions(data, { t, fixed, st }, opts));
   fillNight(data, fixed); fillTypes(); fillTeach();
 }
