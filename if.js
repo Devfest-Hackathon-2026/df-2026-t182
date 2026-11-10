@@ -819,6 +819,8 @@ function paintRecord() {
     const b = band('rec-report', '前回の結果', () => { document.getElementById('record').hidden = true; dispatchEvent(new CustomEvent('mi:afterword')); }, `前回の結果を見る${typeName ? '　' + typeName : ''}`);
     b.append(media(key ? 'type' : '', bg, typeName || 'この夜のふりかえり', endName ? `結末「${endName}」` : ''), side(''));
     list.append(b);
+    // 保存された名前はその夜の時点のもの。タイプ名を変えたあとも今の名前で出す（report.js は起動を軽くするため後から読む）
+    if (key) import('./report.js').then(m => { const n = m.TYPES[key]?.name; if (!n || n === typeName) return; b.querySelector('.rec-name')?.replaceChildren(h('span', 'rec-nw', n)); b.setAttribute('aria-label', `前回の結果を見る　${n}`); }).catch(() => {});
   }
 
   // 2. たどり着いた結末（見た結末だけを並べる）
