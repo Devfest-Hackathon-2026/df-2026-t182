@@ -1576,8 +1576,40 @@ body:has(#column:not([hidden])) #notices{display:none}
   #column .column-inner{max-width:1180px}
   #report-root{grid-template-columns:minmax(0,1fr) minmax(0,24em);column-gap:48px}
   #column .rp-hero .rp-type{font-size:36px}
-  #column .rp-top{grid-template-columns:minmax(0,1fr) 176px}
-  #column .rp-art{width:176px;height:176px}
+}
+/* ふりかえり票：紙1枚に タイプ → 所見 → 処方 → ミーのひとこと。紙が縦に長いので、破れ目は px で決める */
+#column .rp-hero{clip-path:polygon(0 10px,9% 0,24% 8px,41% 0,62% 8px,80% 0,100% 8px,99.4% calc(100% - 10px),86% 100%,64% calc(100% - 8px),44% 100%,23% calc(100% - 8px),6% 100%,.6% calc(100% - 8px));padding-top:26px;padding-bottom:26px}
+#column .rp-hero .rp-kicker{padding-right:0}
+#column .rp-form{display:flex;align-items:baseline;gap:14px;margin:0 0 16px;padding:0 120px 8px 0;border-bottom:2px solid #2a2e2c;font-family:var(--c-min);color:#2a2e2c}
+#column .rp-form-t{font-size:15px;font-weight:600;letter-spacing:.3em}
+#column .rp-form-no{font-family:var(--c-sans);font-size:13px;letter-spacing:.12em;color:#6f6a55}
+#column .rp-sec{margin-top:20px;padding-top:14px;border-top:1px dashed #2a2e2c40}
+#column .rp-fl{font-family:var(--c-min);font-size:14px;font-weight:600;letter-spacing:.3em;color:#8a5a3c;margin:0 0 10px}
+#column .rp-axes{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5em,1fr));gap:8px}
+#column .rp-axes li{display:grid;gap:2px;padding:8px 10px;border:1px solid #2a2e2c55}
+#column .rp-axes li.thin{border-style:dashed}
+#column .rp-axes .ax{font-size:12px;letter-spacing:.12em;color:#6f7671}
+#column .rp-axes .side{font-family:var(--c-min);font-size:15px;font-weight:600;line-height:1.5;color:#1e2321}
+#column .rp-hero .rp-did li{font-size:15px;color:#2a2e2c}
+#column .rp-hero .rp-tx{font-size:15px;line-height:1.7;color:#2a2e2c}
+#column .rp-hero .rp-note{font-size:13px;line-height:1.7;color:#6f7671;margin-top:6px}
+#column .rp-hero .rp-tonight{font-family:var(--c-min);font-size:16px;line-height:1.95;color:#2a2e2c;margin:0}
+#column .rp-hero .rp-mi{margin-top:20px}
+#column .rp-act{margin-top:28px}
+@media (max-width:420px){#column .rp-form{padding-right:96px}}
+@media (max-width:1099px){ /* 紙が狭いあいだは、観点を1行ずつ（3つの枠が2段に崩れないように） */
+  #column .rp-axes{grid-template-columns:1fr;gap:0;border-top:1px solid #2a2e2c55}
+  #column .rp-axes li{grid-template-columns:5.5em minmax(0,1fr);align-items:baseline;gap:8px;padding:7px 2px;border:0;border-bottom:1px solid #2a2e2c55}
+  #column .rp-axes li.thin{border-bottom-style:dashed}
+}
+/* PC：タイプのミーを大きく紙の上に立たせ、右の列は「次にできること」だけ（紙の上端にそろえる） */
+@media (min-width:900px){
+  #report-root{grid-template-columns:minmax(0,1fr) minmax(0,20em)}
+  #column .rp-top{display:flex;flex-direction:column;align-items:center}
+  #column .rp-art{position:relative;width:clamp(240px,28vw,340px);height:auto;aspect-ratio:1;margin:0 0 -34px}
+  #column .rp-hero{align-self:stretch;padding:30px 40px 30px}
+  #column .rp-form{padding-right:0;justify-content:space-between}
+  #column .rp-act{grid-row:1 / span 2;align-self:start;position:sticky;top:24px;margin-top:calc(clamp(240px,28vw,340px) - 34px);padding-top:0;border-top:0}
 }
 
 /* ── 起動まわり（2026-11-09）：部屋の準備中の表示／読み込みに失敗したときの案内 ── */
